@@ -1,5 +1,11 @@
 import tkinter
+import os
+import json
+import hashlib
+from pathlib import Path
 
+
+JSON_USER_FILE = str(Path.home()) + "/PycharmProjects/Cryptography-project/user.json"
 def sign_up():
     inicio.grid_remove()
     registro.grid_remove()
@@ -10,38 +16,73 @@ def login():
     inicio.grid_remove()
     registro.grid_remove()
     logged()
-    
+def encode_password(password_to_encode):
+    password_encoded = hashlib.sha256(password_to_encode.encode()).hexdigest()
+    return password_encoded
     
     return 0
+def guardar_datos(usuario, id_card, date, correo, contraseña):
+    try:
+        with open(JSON_USER_FILE, 'r', encoding='utf-8', newline="") as l:
+            data = json.load(l)
+    except FileNotFoundError:
+        data = []
 
-def prueba(pruebv):
-    print(pruebv)
+    data.append({"user": usuario, "ID": id_card, "birth date": date,"mail":correo, "password":encode_password(contraseña)})
+
+    try:
+        with open(JSON_USER_FILE, 'w', encoding='utf-8', newline="") as f:
+            json.dump(data, f, indent=2)
+    except FileNotFoundError as e:
+        print("NO SE PUDO HACER")
+        return 0
+
+
+
+
+
+
+def prueba_contraseña(correo, repetir_contraseña, contraseña):
+    if encode_password(contraseña) != encode_password(repetir_contraseña):
+        print("error")
+        return -1
+    guardar_datos(correo, contraseña)
     return 0
 
 def register():
     tkinter.Label(ventana_frame, text="REGISTRO").grid(row=0, column=150)
     tkinter.Label(ventana_frame, text="Correo").grid(row=2, column=150)
-    usuario = tkinter.Entry(ventana_frame, width=20)
-    usuario.grid(row=4, column=150)
+    correo = tkinter.Entry(ventana_frame, width=20)
+    correo.grid(row=4, column=150)
     tkinter.Label(ventana_frame, text="Contrseña").grid(row=6, column=150)
-    usuario = tkinter.Entry(ventana_frame, width=20)
-    usuario.grid(row=8, column=150)
-    
-    inicio = tkinter.Button(ventana_frame, text="Registrarse", command=lambda: prueba(usuario.get()))
-    inicio.grid(row=10, column=150)
+    contraseña = tkinter.Entry(ventana_frame, width=20, show="*")
+    contraseña.grid(row=8, column=150)
+    tkinter.Label(ventana_frame, text="Repita la contrseña").grid(row=10, column=150)
+    repetir_contraseña = tkinter.Entry(ventana_frame, width=20, show="*")
+    repetir_contraseña.grid(row=12, column=150)
+
+    inicio = tkinter.Button(ventana_frame, text="Registrarse", command=lambda: prueba_contraseña(correo.get(), repetir_contraseña.get(), contraseña.get()))
+    inicio.grid(row=14, column=150)
 def logged():
     tkinter.Label(ventana_frame, text="INICIO DE SESION").grid(row=0, column=150)
     tkinter.Label(ventana_frame, text="Correo").grid(row=2, column=150)
     usuario = tkinter.Entry(ventana_frame, width=20)
     usuario.grid(row=4, column=150)
     tkinter.Label(ventana_frame, text="Contrseña").grid(row=6, column=150)
-    usuario = tkinter.Entry(ventana_frame, width=20)
-    usuario.grid(row=8, column=150)
+    contraseña = tkinter.Entry(ventana_frame, width=20)
+    contraseña.grid(row=8, column=150)
     
-    inicio = tkinter.Button(ventana_frame, text="INICIAR SESION", command=lambda: prueba(usuario.get()))
+    inicio = tkinter.Button(ventana_frame, text="INICIAR SESION", command=lambda: prueba_inicio_sesion(usuario.get()))
     inicio.grid(row=10, column=150)
     
     
+def prueba_inicio_sesion (usuario, contraseña):
+    try:
+        with open(ruta, 'r', encoding='utf-8', newline="") as l:
+            data = json.load(l)
+
+
+
 
 ventana = tkinter.Tk()
 ventana.geometry("600x300")
