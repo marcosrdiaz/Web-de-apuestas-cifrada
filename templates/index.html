@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blose - Tu Casa de Apuestas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo de Blose" class="logo">
+            <h1>Blose</h1>
+        </div>
+        <nav class="nav-links">
+            <button class="nav-btn" disabled>Inicio</button>
+            <button class="nav-btn" disabled>Fútbol</button>
+            <button class="nav-btn" disabled>Hípica</button>
+            <button class="nav-btn" disabled>Baloncesto</button>
+            <button class="nav-btn" disabled>Tenis</button>
+        </nav>
+        <div class="auth-buttons">
+            <a href="/login" class="auth-btn">Iniciar Sesión</a>
+            <a href="/register" class="auth-btn">Registrarse</a>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <h2>Bienvenido a Blose</h2>
+    </div>
+
+</body>
+</html>
