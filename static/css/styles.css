@@ -14,6 +14,15 @@ body {
     font-size: 16px;
 }
 
+section {
+    padding-top:20vh;
+    height: 100vh;
+    width: 100%;
+    background-color: rgb(233, 212, 212);
+    background-image: url('../images/patron.png');
+    overflow: hidden;
+}
+
 a {
     color: #3cba54; /* Verde brillante */
     text-decoration: none;
@@ -39,6 +48,119 @@ h2 {
     margin-bottom: 10px;
     font-size: 2.5em;
 }
+
+
+.topnav {
+    background-color: rgb(199, 75, 75);
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 10vh;
+    width: 100%;
+    overflow-x:hidden;
+    position: fixed;
+    top: 0;
+    left:0;
+    float: left;
+    z-index: 3;
+    gap: 2vw;
+
+}
+.logo {
+    width:10vh;
+    height:auto;
+}
+
+#futbol:target .partidos{
+    display:block;
+}
+
+.partidos {
+    display:none;
+    text-align: center;
+}
+.partidos a {
+    display: block;
+    margin: 10px auto;
+    width: 200px;
+}
+
+#partidos:target{
+    display:block;
+}
+.apuestas {
+    margin-top: 20px;
+    flex: 1;
+    display:none;
+}
+
+#apuestas:target {
+    display:block;
+}
+
+.bet-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 20px;
+}
+.bet-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    flex-basis: calc(33.333% - 40px);
+    max-width: 300px;
+    text-align: center;
+}
+.bet-card h2 {
+    color: #007bff;
+}
+.bet-card button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.bet-card button:hover {
+    background-color: #0056b3;
+}
+
+/* Panel lateral para mostrar las selecciones */
+.sidebar {
+    width: 300px;
+    background-color: #fff;
+    border-left: 2px solid #ddd;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    height: 100vh;
+    overflow-y: auto;
+}
+.sidebar h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+.selected-bets {
+    list-style-type: none;
+    padding: 0;
+}
+.selected-bets li {
+    background-color: #f4f4f4;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #555;
+}
+
+
+
+
+
+
 
 /* Contenedor principal */
 .container {

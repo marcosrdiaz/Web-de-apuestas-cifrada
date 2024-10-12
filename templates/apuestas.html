@@ -1,46 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <title>Blose - Tu Casa de Apuestas</title>
+    <title>Apuestas</title>
 </head>
 <body>
 
-    <!-- Header -->
-    <header>
-        <div class="topnav">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo de Blose" class="logo">
-                <h1>Blose</h1>
-            </div>
-            <nav class="nav-links">
-                <button class="nav-btn" disabled>Inicio</button>
-                <a href="#futbol" class="nav-btn">Fútbol</a>
-                <button class="nav-btn" disabled>Hípica</button>
-                <button class="nav-btn" disabled>Baloncesto</button>
-                <button class="nav-btn" disabled>Tenis</button>
-            </nav>
-            <div class="auth-buttons">
-                <a href="/login" class="auth-btn">Iniciar Sesión</a>
-                <a href="/register" class="auth-btn">Registrarse</a>
-            </div>
-        </div>
-    </header>
-    <section class="inicio" id="inicio">
-
-
-    </section>
-    <section class="futbol" id="futbol">
-        <!-- Contenido principal -->
-        <div class="partidos" id="partidos">
-            <h2>Selecciona un Partido:</h2>
-            <a href="#apuestas" class="partidos_btn">Partido 1: Equipo A vs Equipo B</a>
-            <a href="#apuestas" class="partidos_btn">Partido 2: Equipo C vs Equipo D</a>
-            <a href="#apuestas" class="partidos_btn">Partido 3: Equipo E vs Equipo F</a>
-        </div>
-        <div class="apuestas" id="apuestas">
+    <div class="apuestas" id="apuestas">
         <h2>Apuestas para el <span id="match-title"></span></h2>
         <div class="bet-container">
             <!-- Tarjeta de apuesta 1 -->
@@ -69,7 +37,7 @@
                 <button class="bet-option" data-bet="Nadie (0-0)">Nadie (0-0)</button>
             </div>
         </div>
-
+        </div>
 
         <div class="sidebar">
             <h2>Tus Apuestas</h2>
@@ -77,14 +45,6 @@
                 <li>No has seleccionado ninguna apuesta aún.</li>
             </ul>
         </div>
-        </div>
-
-    </section>
-
-    <section class="hipica" id="hipica">
-
-    </section>
-
 
 </body>
 </html>

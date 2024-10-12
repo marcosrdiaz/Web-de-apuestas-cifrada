@@ -122,7 +122,6 @@ def login_usuario():
     else:
         return jsonify({'message': 'Credenciales incorrectas'}), 401
 
-
 if __name__ == '__main__':
     app.run(debug=True)
 
