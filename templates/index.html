@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Blose - Tu Casa de Apuestas</title>
+
 </head>
 <body>
 
@@ -16,75 +17,58 @@
                 <h1>Blose</h1>
             </div>
             <nav class="nav-links">
-                <button class="nav-btn" disabled>Inicio</button>
-                <a href="#futbol" class="nav-btn">Fútbol</a>
-                <button class="nav-btn" disabled>Hípica</button>
-                <button class="nav-btn" disabled>Baloncesto</button>
-                <button class="nav-btn" disabled>Tenis</button>
+                <button class="nav-btn" onclick="window.location.href='/'">Inicio</button>
+                <button class="nav-btn" onclick="window.location.href='futbol.html'">Fútbol</button>
+                <button class="nav-btn" onclick="window.location.href='baloncesto.html'">Baloncesto</button>
+                <button class="nav-btn" onclick="window.location.href='tenis.html'">Tenis</button>
+                <button class="nav-btn" onclick="window.location.href='hipica.html'">Hípica</button>
             </nav>
             <div class="auth-buttons">
-                <a href="/login" class="auth-btn">Iniciar Sesión</a>
-                <a href="/register" class="auth-btn">Registrarse</a>
+                <button onclick="window.location.href='/login'" class="auth-btn">Iniciar Sesión</button>
+                <button onclick="window.location.href='/register'" class="auth-btn">Registrarse</button>
             </div>
         </div>
     </header>
-    <section class="inicio" id="inicio">
 
+    <main>
+        <a href="/" class="section-link">
+            <section class="inicio" id="inicio">
+                <h2>Bienvenido a Blose</h2>
+                <p>¡Comienza a disfrutar de tus apuestas hoy mismo!</p>
+            </section>
+        </a>
 
-    </section>
-    <section class="futbol" id="futbol">
-        <!-- Contenido principal -->
-        <div class="partidos" id="partidos">
-            <h2>Selecciona un Partido:</h2>
-            <a href="#apuestas" class="partidos_btn">Partido 1: Equipo A vs Equipo B</a>
-            <a href="#apuestas" class="partidos_btn">Partido 2: Equipo C vs Equipo D</a>
-            <a href="#apuestas" class="partidos_btn">Partido 3: Equipo E vs Equipo F</a>
-        </div>
-        <div class="apuestas" id="apuestas">
-        <h2>Apuestas para el <span id="match-title"></span></h2>
-        <div class="bet-container">
-            <!-- Tarjeta de apuesta 1 -->
-            <div class="bet-card">
-                <h2>Resultado del Partido</h2>
-                <p>¿Quién ganará?</p>
-                <button class="bet-option" data-bet="Equipo A gana">Apuesta por el Equipo A</button><br><br>
-                <button class="bet-option" data-bet="Equipo B gana">Apuesta por el Equipo B</button><br><br>
-                <button class="bet-option" data-bet="Empate">Apuesta por el Empate</button>
-            </div>
+        <a href="futbol.html" class="section-link">
+            <section class="futbol" id="futbol">
+                <h2>Fútbol</h2>
+                <p>Consulta los partidos más recientes y realiza tus apuestas.</p>
+            </section>
+        </a>
 
-            <!-- Tarjeta de apuesta 2 -->
-            <div class="bet-card">
-                <h2>Número de Goles</h2>
-                <p>¿Cuántos goles se marcarán en el partido?</p>
-                <button class="bet-option" data-bet="Menos de 2.5 Goles">Menos de 2.5 Goles</button><br><br>
-                <button class="bet-option" data-bet="Más de 2.5 Goles">Más de 2.5 Goles</button>
-            </div>
+        <a href="baloncesto.html" class="section-link">
+            <section class="baloncesto" id="baloncesto">
+                <h2>Baloncesto</h2>
+                <p>Encuentra información sobre los próximos partidos y más.</p>
+            </section>
+        </a>
 
-            <!-- Tarjeta de apuesta 3 -->
-            <div class="bet-card">
-                <h2>Primer Gol</h2>
-                <p>¿Quién marcará el primer gol?</p>
-                <button class="bet-option" data-bet="Equipo A marca primero">Equipo A</button><br><br>
-                <button class="bet-option" data-bet="Equipo B marca primero">Equipo B</button><br><br>
-                <button class="bet-option" data-bet="Nadie (0-0)">Nadie (0-0)</button>
-            </div>
-        </div>
+        <a href="tenis.html" class="section-link">
+            <section class="tenis" id="tenis">
+                <h2>Tenis</h2>
+                <p>Descubre los torneos más importantes y haz tus apuestas.</p>
+            </section>
+        </a>
 
+        <a href="hipica.html" class="section-link">
+            <section class="hipica" id="hipica">
+                <h2>Hípica</h2>
+                <p>Infórmate sobre las carreras de caballos y sus apuestas.</p>
+            </section>
+        </a>
+    </main>
 
-        <div class="sidebar">
-            <h2>Tus Apuestas</h2>
-            <ul class="selected-bets" id="selectedBetsList">
-                <li>No has seleccionado ninguna apuesta aún.</li>
-            </ul>
-        </div>
-        </div>
-
-    </section>
-
-    <section class="hipica" id="hipica">
-
-    </section>
-
-
+    <footer>
+        <p>&copy; 2024 Blose. Todos los derechos reservados.</p>
+    </footer>
 </body>
 </html>

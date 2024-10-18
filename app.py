@@ -55,51 +55,67 @@ def validar_contraseña(password):
 def index():
     return render_template('index.html')
 
-# Ruta para mostrar la página de registro (register.html)
-@app.route('/register')
+# Ruta para mostrar la página de registro (register.html) y manejar el registro (POST)
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    return render_template('register.html')
+    if request.method == 'POST':
+        # Obtener los datos del formulario
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Validación de campos obligatorios
+        if not username or not email or not password:
+            return jsonify({'message': 'Faltan campos obligatorios'}), 400
+
+        # Validación del formato del correo electrónico
+        if not validar_email(email):
+            return jsonify({'message': 'El formato del correo electrónico es inválido'}), 400
+
+        # Validación de la longitud de la contraseña
+        if not validar_contraseña(password):
+            return jsonify({'message': 'La contraseña debe tener al menos 8 caracteres'}), 400
+
+        # Cifrar la contraseña
+        hashed_password = generate_password_hash(password)
+
+        nuevo_usuario = {
+            'username': username,
+            'email': email,
+            'password': hashed_password  # Guardar la contraseña cifrada
+        }
+
+        # Intentar guardar el nuevo usuario
+        if guardar_usuario(nuevo_usuario):
+            return redirect(url_for('index'))  # Redirigir a la página de inicio (index.html)
+        else:
+            return jsonify({'message': 'El nombre de usuario o el correo ya están en uso'}), 409
+
+    return render_template('register.html')  # Si es GET, mostrar el formulario
 
 # Ruta para mostrar la página de inicio de sesión (login.html)
 @app.route('/login')
 def login():
     return render_template('login.html')
 
-# Ruta para el registro de usuario (POST)
-@app.route('/registrar_usuario', methods=['POST'])
-def registrar_usuario():
-    datos = request.form
 
-    username = datos.get('username')
-    email = datos.get('email')
-    password = datos.get('password')
 
-    # Validación de campos obligatorios
-    if not username or not email or not password:
-        return jsonify({'message': 'Faltan campos obligatorios'}), 400
 
-    # Validación del formato del correo electrónico
-    if not validar_email(email):
-        return jsonify({'message': 'El formato del correo electrónico es inválido'}), 400
+@app.route('/futbol')
+def futbol():
+    return render_template('futbol.html')
 
-    # Validación de la longitud de la contraseña
-    if not validar_contraseña(password):
-        return jsonify({'message': 'La contraseña debe tener al menos 8 caracteres'}), 400
+@app.route('/hipica')
+def hipica():
+    return render_template('hipica.html')
 
-    # Cifrar la contraseña
-    hashed_password = generate_password_hash(password)
+@app.route('/baloncesto')
+def baloncesto():
+    return render_template('baloncesto.html')
 
-    nuevo_usuario = {
-        'username': username,
-        'email': email,
-        'password': hashed_password  # Guardar la contraseña cifrada
-    }
-
-    # Intentar guardar el nuevo usuario
-    if guardar_usuario(nuevo_usuario):
-        return redirect(url_for('index'))  # Redirigir a la página de inicio (index.html)
-    else:
-        return jsonify({'message': 'El nombre de usuario o el correo ya están en uso'}), 409
+@app.route('/tenis')
+def tenis():
+    return render_template('tenis.html')
 
 # Ruta para la verificación de usuario al iniciar sesión (POST)
 @app.route('/login_usuario', methods=['POST'])
@@ -124,6 +140,7 @@ def login_usuario():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
 
 
