@@ -317,3 +317,7 @@ footer {
     font-size: 0.9rem; /* Tamaño de fuente más pequeño */
 }
 
+
+#user-info {
+    display: none;
+}

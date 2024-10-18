@@ -24,8 +24,15 @@
                 <button class="nav-btn" onclick="window.location.href='/hipica'">Hípica</button>
             </nav>
             <div class="auth-buttons">
-                <button onclick="window.location.href='/login'" class="auth-btn">Iniciar Sesión</button>
-                <button onclick="window.location.href='/register'" class="auth-btn">Registrarse</button>
+                {% if usuario %}
+                    <!-- Mostrar información del usuario cuando ha iniciado sesión -->
+                    <span>Bienvenido, {{ usuario['username'] }}</span>
+                    <button onclick="window.location.href='/logout'" class="auth-btn" id="logout-btn">Cerrar Sesión</button>
+                {% else %}
+                    <!-- Mostrar botones de inicio de sesión y registro si el usuario no está autenticado -->
+                    <button onclick="window.location.href='/login'" class="auth-btn" id="login-btn">Iniciar Sesión</button>
+                    <button onclick="window.location.href='/register'" class="auth-btn" id="register-btn">Registrarse</button>
+                {% endif %}
             </div>
 
         </div>
@@ -67,5 +74,8 @@
     <footer>
         <p>&copy; 2024 Blose. Todos los derechos reservados.</p>
     </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 </body>
 </html>

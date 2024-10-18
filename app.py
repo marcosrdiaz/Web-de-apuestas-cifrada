@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import json
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -54,7 +54,9 @@ def validar_contraseña(password):
 # Ruta para mostrar la página principal (index.html)
 @app.route('/')
 def index():
-    return render_template('index.html')
+
+    usuario = session.get("usuario")
+    return render_template('index.html', usuario=usuario)
 
 # Ruta para mostrar la página de registro (register.html) y manejar el registro (POST)
 @app.route('/register', methods=['GET', 'POST'])
@@ -95,8 +97,26 @@ def register():
     return render_template('register.html')  # Si es GET, mostrar el formulario
 
 # Ruta para mostrar la página de inicio de sesión (login.html)
-@app.route('/login')
+@app.route('/login', methods=["GET", "POST"])
 def login():
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not email or not password:
+            return jsonify({'message': 'Faltan campos obligatorios'}), 400
+
+        usuarios = leer_usuarios()
+        usuario = next((u for u in usuarios if u['email'] == email), None)
+
+        if usuario and check_password_hash(usuario['password'], password):
+            # Guardar la información del usuario en la sesión
+            session['usuario'] = {'username': usuario['username'], 'email': usuario['email']}
+            return redirect(url_for('index'))
+        else:
+            return jsonify({'message': 'Credenciales incorrectas'}), 401
+
     return render_template('login.html')
 
 
@@ -119,25 +139,13 @@ def tenis():
     return render_template('tenis.html')
 
 # Ruta para la verificación de usuario al iniciar sesión (POST)
-@app.route('/login_usuario', methods=['POST'])
-def login_usuario():
-    datos = request.form
 
-    email = datos.get('email')
-    password = datos.get('password')
 
-    if not email or not password:
-        return jsonify({'message': 'Faltan campos obligatorios'}), 400
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)  # Cerrar sesión
+    return redirect(url_for('index'))
 
-    usuarios = leer_usuarios()
-
-    # Buscar usuario por email
-    usuario = next((u for u in usuarios if u['email'] == email), None)
-
-    if usuario and check_password_hash(usuario['password'], password):
-        return redirect(url_for('index'))  # Redirigir al inicio si la sesión es exitosa
-    else:
-        return jsonify({'message': 'Credenciales incorrectas'}), 401
 
 if __name__ == '__main__':
     app.run(debug=True)
