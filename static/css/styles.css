@@ -45,10 +45,14 @@ header {
     background-color: #111; /* Fondo del encabezado oscuro */
     padding: 20px;
     text-align: center;
+    position: sticky; /* O 'fixed' si prefieres */
+    top: 0; /* Mantener en la parte superior */
+    z-index: 1000; /* Asegúrate de que esté por encima de otros elementos */
     border-radius: 10px;
     margin-bottom: 20px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
+
 main {
     padding: 20px; /* Espaciado en el contenedor principal */
 }
@@ -77,6 +81,7 @@ main {
 
 .nav-btn:hover, .auth-btn:hover {
     background-color: #d0a138; /* Amarillo oscuro al pasar el mouse */
+    transform: scale(1.05);
 }
 
 /* Estilos para las secciones */
@@ -87,6 +92,19 @@ section {
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
+.section-link {
+    text-decoration: none; /* Elimina el subrayado */
+    color: inherit; /* Hereda el color del texto del contenedor */
+    transition: transform 0.3s ease, color 0.3s ease; /* Transición suave para el tamaño y color */
+}
+
+.section-link:hover {
+    text-decoration: none;
+    transform: scale(1.05); /* Aumenta el tamaño al 105% */
+    color: #fff; /* Cambia el color al pasar el mouse */
+}
+
+
 
 /* Estilo para títulos */
 .preview-btn {

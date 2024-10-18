@@ -4,8 +4,9 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 
-app = Flask(__name__)
 
+app = Flask(__name__)
+app.secret_key = 'tu_clave_secreta_aqui'
 # Ruta del archivo JSON donde se guardarán los registros
 RUTA_JSON = 'usuarios.json'
 
