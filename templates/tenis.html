@@ -3,18 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Ejemplo de Página HTML</title>
 </head>
 <body>
+    <!-- Header -->
     <header>
-        <h1>Bienvenido a mi página</h1>
+        <div class="topnav">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo de Blose" class="logo">
+                <h1>Blose</h1>
+            </div>
+            <nav class="nav-links">
+                <button class="nav-btn" onclick="window.location.href='/'">Inicio</button>
+                <button class="nav-btn" onclick="window.location.href='/futbol'">Fútbol</button>
+                <button class="nav-btn" onclick="window.location.href='/baloncesto'">Baloncesto</button>
+                <button class="nav-btn" onclick="window.location.href='/tenis'">Tenis</button>
+                <button class="nav-btn" onclick="window.location.href='/hipica'">Hípica</button>
+            </nav>
+            <div class="auth-buttons">
+                {% if usuario %}
+                    <!-- Mostrar información del usuario cuando ha iniciado sesión -->
+                    <div class="user-menu">
+                        <span class="user-name">Bienvenido, {{ usuario['username'] }} &#x25BC;</span> <!-- Unicode para flecha hacia abajo -->
+                        <div class="user-dropdown">
+                                <a href="/perfil">Mi Perfil</a>
+                                <a href="/balance">Balance: {{ usuario['balance'] }}€</a>
+                                <a href="/logout">Cerrar Sesión</a>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <!-- Mostrar botones de inicio de sesión y registro si el usuario no está autenticado -->
+                    <button onclick="window.location.href='/login'" class="auth-btn" id="login-btn">Iniciar Sesión</button>
+                    <button onclick="window.location.href='/register'" class="auth-btn" id="register-btn">Registrarse</button>
+                {% endif %}
+            </div>
+        </div>
     </header>
-    <main>
-        <p>Este es un ejemplo básico de una página HTML.</p>
-        <p>Puedes aprender más sobre HTML <a href="https://www.w3schools.com/html/">aquí</a>.</p>
-    </main>
-    <footer>
-        <p>&copy; 2024 Mi Sitio Web</p>
-    </footer>
 </body>
 </html>

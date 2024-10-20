@@ -26,15 +26,21 @@
             <div class="auth-buttons">
                 {% if usuario %}
                     <!-- Mostrar información del usuario cuando ha iniciado sesión -->
-                    <span>Bienvenido, {{ usuario['username'] }}</span>
-                    <button onclick="window.location.href='/logout'" class="auth-btn" id="logout-btn">Cerrar Sesión</button>
+                    <div class="user-menu">
+                        <span class="user-name">Bienvenido, {{ usuario['username'] }} &#x25BC;</span> <!-- Unicode para flecha hacia abajo -->
+                        <div class="user-dropdown">
+                                <a href="/perfil">Mi Perfil</a>
+                                <p>Balance: {{ usuario['balance'] }} €</p>
+                                <a href="/logout">Cerrar Sesión</a>
+                        </div>
+                    </div>
+
                 {% else %}
                     <!-- Mostrar botones de inicio de sesión y registro si el usuario no está autenticado -->
                     <button onclick="window.location.href='/login'" class="auth-btn" id="login-btn">Iniciar Sesión</button>
                     <button onclick="window.location.href='/register'" class="auth-btn" id="register-btn">Registrarse</button>
                 {% endif %}
             </div>
-
         </div>
     </header>
 

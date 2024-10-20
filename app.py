@@ -51,6 +51,73 @@ def validar_email(email):
 def validar_contraseña(password):
     return len(password) >= 8
 
+@app.route('/perfil')
+def perfil():
+    if 'usuario' in session:
+        usuario = session['usuario']
+        return render_template('perfil.html', usuario=usuario)
+    else:
+        return redirect(url_for('login'))
+
+
+# Ruta para modificar el balance
+@app.route('/modificar_balance', methods=["POST"])
+def modificar_balance():
+    if 'usuario' in session:
+        action = request.form.get('accion')
+        cantidad = float(request.form.get('cantidad'))
+
+        # Leer usuarios desde el archivo JSON
+        usuarios = leer_usuarios()
+        usuario_email = session['usuario']['email']
+
+        # Actualizar balance según la acción
+        for usuario in usuarios:
+            if usuario['email'] == usuario_email:
+                if action == 'añadir':
+                    usuario['balance'] += cantidad
+                elif action == 'retirar' and usuario['balance'] >= cantidad:
+                    usuario['balance'] -= cantidad
+                break
+
+        # Guardar cambios en el archivo JSON
+        guardar_usuario(usuarios)
+
+        # Actualizar balance en la sesión
+        session['usuario']['balance'] = usuario['balance']
+        return redirect(url_for('perfil'))  # Regresar a la página de perfil
+
+    return redirect(url_for('login'))
+
+
+# Ruta para actualizar los datos del usuario
+@app.route('/actualizar_datos', methods=["POST"])
+def actualizar_datos():
+    if 'usuario' in session:
+        nuevo_email = request.form.get('nuevo_email')
+        nuevo_username = request.form.get('nuevo_username')
+
+        # Leer usuarios desde el archivo JSON
+        usuarios = leer_usuarios()
+        usuario_email = session['usuario']['email']
+
+        # Actualizar datos del usuario
+        for usuario in usuarios:
+            if usuario['email'] == usuario_email:
+                usuario['email'] = nuevo_email
+                usuario['username'] = nuevo_username
+                break
+
+        # Guardar cambios en el archivo JSON
+        guardar_usuario(usuarios)
+
+        # Actualizar datos en la sesión
+        session['usuario']['email'] = nuevo_email
+        session['usuario']['username'] = nuevo_username
+        return redirect(url_for('perfil'))  # Regresar a la página de perfil
+
+    return redirect(url_for('login'))
+
 # Ruta para mostrar la página principal (index.html)
 @app.route('/')
 def index():
@@ -85,7 +152,8 @@ def register():
         nuevo_usuario = {
             'username': username,
             'email': email,
-            'password': hashed_password  # Guardar la contraseña cifrada
+            'password': hashed_password,  # Guardar la contraseña cifrada
+            'balance': 0
         }
 
         # Intentar guardar el nuevo usuario
@@ -111,8 +179,11 @@ def login():
         usuario = next((u for u in usuarios if u['email'] == email), None)
 
         if usuario and check_password_hash(usuario['password'], password):
-            # Guardar la información del usuario en la sesión
-            session['usuario'] = {'username': usuario['username'], 'email': usuario['email']}
+            session['usuario'] = {
+                'username': usuario['username'],
+                'email': usuario['email'],
+                'balance': usuario['balance']  # Incluir el balance
+            }
             return redirect(url_for('index'))
         else:
             return jsonify({'message': 'Credenciales incorrectas'}), 401
@@ -124,19 +195,24 @@ def login():
 
 @app.route('/futbol')
 def futbol():
-    return render_template('futbol.html')
+    usuario = session.get('usuario')  # Obtener al usuario de la sesión si está autenticado
+    return render_template('futbol.html', usuario=usuario)
+
 
 @app.route('/hipica')
 def hipica():
-    return render_template('hipica.html')
+    usuario = session.get('usuario')
+    return render_template('hipica.html', usuario=usuario)
 
 @app.route('/baloncesto')
 def baloncesto():
-    return render_template('baloncesto.html')
+    usuario = session.get('usuario')
+    return render_template('baloncesto.html', usuario=usuario)
 
 @app.route('/tenis')
 def tenis():
-    return render_template('tenis.html')
+    usuario = session.get('usuario')
+    return render_template('tenis.html', usuario=usuario)
 
 # Ruta para la verificación de usuario al iniciar sesión (POST)
 

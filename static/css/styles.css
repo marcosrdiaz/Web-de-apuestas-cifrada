@@ -83,7 +83,67 @@ main {
     background-color: #d0a138; /* Amarillo oscuro al pasar el mouse */
     transform: scale(1.05);
 }
+/* Estilos del menú desplegable */
+.user-menu {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    color: white;
+}
 
+.user-name {
+    padding: 10px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+
+.user-dropdown {
+    display: none;
+    position: absolute;
+    background-color: #333; /* Fondo oscuro */
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    border-radius: 5px; /* Bordes redondeados */
+}
+
+.user-dropdown a {
+    color: white; /* Texto blanco */
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s ease; /* Transición suave de color */
+}
+
+.user-dropdown a:hover {
+    background-color: #555; /* Cambia el fondo al pasar el cursor */
+    color: white;
+    border-radius: 5px;
+}
+
+/* Mostrar el menú desplegable cuando el cursor está sobre el nombre de usuario */
+.user-menu:hover .user-dropdown {
+    display: block;
+}
+
+.user-menu:hover .user-name {
+    background-color: #333;
+    border-radius: 5px;
+    transition: background-color 0.3s ease; /* Transición suave */
+
+}
+
+
+/* Aseguramos que el texto no esté subrayado */
+.user-dropdown a {
+    text-decoration: none;
+}
+
+.user-dropdown a:hover {
+    text-decoration: none; /* Sin subrayado al pasar el cursor */
+}
 /* Estilos para las secciones */
 section {
     margin: 20px 0; /* Espacio entre secciones */
@@ -305,6 +365,18 @@ a {
 
 a:hover {
     text-decoration: underline; /* Subrayado al pasar el mouse */
+}
+
+
+
+
+logo{
+
+    height:  10vh;
+    weight:   auto;
+
+
+
 }
 
 /* Estilos del footer */

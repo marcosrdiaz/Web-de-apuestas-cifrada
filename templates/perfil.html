@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Mi Perfil - Blose</title>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="topnav">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo de Blose" class="logo">
+                <h1>Blose</h1>
+            </div>
+            <nav class="nav-links">
+                <button class="nav-btn" onclick="window.location.href='/'">Inicio</button>
+                <button class="nav-btn" onclick="window.location.href='/futbol'">Fútbol</button>
+                <button class="nav-btn" onclick="window.location.href='/baloncesto'">Baloncesto</button>
+                <button class="nav-btn" onclick="window.location.href='/tenis'">Tenis</button>
+                <button class="nav-btn" onclick="window.location.href='/hipica'">Hípica</button>
+            </nav>
+            <div class="auth-buttons">
+                {% if usuario %}
+                    <span>Bienvenido, {{ usuario['username'] }}</span>
+                    <button onclick="window.location.href='/logout'" class="auth-btn" id="logout-btn">Cerrar Sesión</button>
+                {% else %}
+                    <button onclick="window.location.href='/login'" class="auth-btn" id="login-btn">Iniciar Sesión</button>
+                    <button onclick="window.location.href='/register'" class="auth-btn" id="register-btn">Registrarse</button>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="perfil">
+            <h2>Mi Perfil</h2>
+            <img src="{{ url_for('static', filename='images/perfil.png') }}" alt="Foto de Perfil" class="profile-pic">
+
+            <div class="user-info">
+                <p><strong>Nombre de Usuario:</strong> {{ usuario['username'] }}</p>
+                <p><strong>Email:</strong> {{ usuario['email'] }}</p>
+                <p><strong>Balance:</strong> {{ usuario['balance'] }} unidades</p>
+            </div>
+
+            <h3>Añadir o Retirar Dinero</h3>
+            <form method="POST" action="{{ url_for('modificar_balance') }}">
+                <label for="cantidad">Cantidad:</label>
+                <input type="number" name="cantidad" id="cantidad" required min="1" step="any">
+
+                <button type="submit" name="accion" value="añadir">Añadir Dinero</button>
+                <button type="submit" name="accion" value="retirar">Retirar Dinero</button>
+            </form>
+
+            <h3>Cambiar Mis Datos</h3>
+            <form method="POST" action="{{ url_for('actualizar_datos') }}">
+                <label for="nuevo_email">Nuevo Email:</label>
+                <input type="email" name="nuevo_email" id="nuevo_email" required>
+
+                <label for="nuevo_username">Nuevo Nombre de Usuario:</label>
+                <input type="text" name="nuevo_username" id="nuevo_username" required>
+
+                <button type="submit">Actualizar Datos</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Blose. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
