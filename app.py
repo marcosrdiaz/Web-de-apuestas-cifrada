@@ -4,6 +4,13 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+import base64
+import logging
+
+import hmac
+import hashlib
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'
@@ -50,6 +57,121 @@ def validar_email(email):
 # Función para validar la contraseña (mínimo 8 caracteres)
 def validar_contraseña(password):
     return len(password) >= 8
+
+
+
+
+
+
+# Configuración del log para mostrar mensajes
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger()
+
+
+# Función para cifrar un mensaje con AES-GCM
+def cifrar_aes(texto_plano, clave):
+    # Genera un nonce (vector de inicialización) aleatorio
+    nonce = get_random_bytes(12)
+
+    # Crea un objeto de cifrado AES en modo GCM
+    cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
+
+    # Cifra el texto plano
+    texto_cifrado, tag = cipher.encrypt_and_digest(texto_plano.encode())
+
+    # Devuelve el texto cifrado, el nonce y el tag (para autenticar el mensaje)
+    return texto_cifrado, nonce, tag
+
+
+# Función para descifrar un mensaje cifrado con AES-GCM
+def descifrar_aes(texto_cifrado, nonce, tag, clave):
+    # Crea un objeto de descifrado AES en modo GCM con el mismo nonce
+    cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
+
+    # Descifra el texto cifrado y verifica la integridad con el tag
+    try:
+        texto_descifrado = cipher.decrypt_and_verify(texto_cifrado, tag)
+        return texto_descifrado.decode()
+    except ValueError:
+        logger.error("Error: el mensaje ha sido alterado o la clave es incorrecta.")
+        return None
+
+
+# Generación de clave AES de 256 bits (32 bytes)
+clave_aes = get_random_bytes(32)  # 256 bits
+
+# Mensaje a cifrar
+mensaje = "Aqui estara el mensaje que queramos cifrar luego"
+
+# Cifrar el mensaje
+texto_cifrado, nonce, tag = cifrar_aes(mensaje, clave_aes)
+logger.info(f"Texto cifrado (base64): {base64.b64encode(texto_cifrado).decode()}")
+logger.info(f"Nonce (base64): {base64.b64encode(nonce).decode()}")
+logger.info(f"Tag (base64): {base64.b64encode(tag).decode()}")
+logger.info(f"Algoritmo: AES-GCM, Longitud de clave: {len(clave_aes) * 8} bits")
+
+# Descifrar el mensaje
+texto_descifrado = descifrar_aes(texto_cifrado, nonce, tag, clave_aes)
+
+if texto_descifrado:
+    logger.info(f"Texto descifrado: {texto_descifrado}")
+
+
+
+
+
+
+
+
+
+# Función para generar HMAC
+def generar_hmac(mensaje, clave):
+    # Crear un objeto HMAC con la clave secreta y el algoritmo SHA-256
+    hmac_obj = hmac.new(clave, mensaje.encode(), hashlib.sha256)
+
+    # Generar el HMAC
+    hmac_digest = hmac_obj.digest()
+
+    # Devolver el HMAC en formato base64 para que sea legible
+    return base64.b64encode(hmac_digest).decode()
+
+
+# Función para verificar HMAC
+def verificar_hmac(mensaje, clave, hmac_proporcionado):
+    # Volver a generar el HMAC con el mensaje y la clave secreta
+    hmac_calculado = generar_hmac(mensaje, clave)
+
+    # Comparar el HMAC calculado con el proporcionado
+    if hmac.compare_digest(hmac_calculado, hmac_proporcionado):
+        logger.info("HMAC válido. El mensaje no ha sido alterado.")
+        return True
+    else:
+        logger.error("HMAC no válido. El mensaje ha sido alterado o la clave es incorrecta.")
+        return False
+
+
+# Clave secreta (debe ser compartida entre emisor y receptor)
+clave_secreta = b'secret_key_very_secure'
+
+# Mensaje a autenticar
+mensaje = "Este es un mensaje importante."
+
+# Generar el HMAC para el mensaje
+hmac_generado = generar_hmac(mensaje, clave_secreta)
+logger.info(f"HMAC generado (base64): {hmac_generado}")
+
+# Verificar el HMAC generado (en una simulación de que es recibido correctamente)
+es_valido = verificar_hmac(mensaje, clave_secreta, hmac_generado)
+
+
+
+
+
+
+
+
+
+
 
 @app.route('/perfil')
 def perfil():
