@@ -399,23 +399,25 @@ canvas {
     display: block;
     margin: 20px auto;
     position: relative;
+    background-image: url("/static/images/hipodromo.jpg")
 }
 .form-container {
     margin-bottom: 20px;
 }
 .horse {
     position: absolute;
-    width: 60px;
-    height: 60px;
+    width: 8vw;
+    height: auto;
     transform: scaleX(-1); /* Invertir horizontalmente */
 }
 /* Ajustar la posición vertical de los caballos */
 #horse1 {
-    top: 30px;
+    top: 10vh;
 }
 #horse2 {
-    top: 110px;
+    top: 20vh;
 }
 #horse3 {
-    top: 190px;
+    top: 30vh;
 }
+
