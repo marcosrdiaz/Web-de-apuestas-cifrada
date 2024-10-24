@@ -7,20 +7,10 @@ import re
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Hash import HMAC, SHA256
-from Crypto.PublicKey import RSA
-from Crypto.Signature import pkcs1_15
 
 import base64
 import logging
 
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.backends import default_backend
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'
@@ -154,143 +144,7 @@ def verificar_hmac(mensaje, clave, hmac_proporcionado):
         return False
 
 
-
-
-
-# Función para generar un par de claves RSA (privada y pública)
-def generar_claves_rsa_firma():
-    clave_privada = RSA.generate(2048)
-    clave_publica = clave_privada.publickey()
-    return clave_privada, clave_publica
-
-# Función para firmar un mensaje con la clave privada
-def firmar_mensaje(mensaje, clave_privada):
-    # Crear un hash SHA-256 del mensaje
-    hash_mensaje = SHA256.new(mensaje.encode())
-
-    # Firmar el hash del mensaje con la clave privada
-    firma = pkcs1_15.new(clave_privada).sign(hash_mensaje)
-
-    # Devolver la firma en formato base64 para legibilidad
-    return base64.b64encode(firma).decode()
-
-# Función para verificar la firma con la clave pública
-def verificar_firma(mensaje, firma_base64, clave_publica):
-    # Crear un hash SHA-256 del mensaje
-    hash_mensaje = SHA256.new(mensaje.encode())
-
-    # Decodificar la firma desde base64
-    firma = base64.b64decode(firma_base64)
-
-    # Verificar la firma con la clave pública
-    try:
-        pkcs1_15.new(clave_publica).verify(hash_mensaje, firma)
-        logger.info("La firma es válida. El mensaje no ha sido alterado.")
-        return True
-    except (ValueError, TypeError):
-        logger.error("La firma no es válida. El mensaje ha sido alterado o la firma es incorrecta.")
-        return False
-
-
-
-
-
-# Función para generar un par de claves RSA
-def generar_claves_rsa_certificado():
-    clave_privada = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
-    clave_publica = clave_privada.public_key()
-    return clave_privada, clave_publica
-
-# Función para crear un certificado autofirmado para la AC raíz
-def crear_certificado_autofirmado(nombre_ac, clave_privada):
-    nombre = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, nombre_ac),
-    ])
-
-    # Obtener la clave pública de la clave privada
-    clave_publica = clave_privada.public_key()
-
-    certificado = (
-        x509.CertificateBuilder()
-        .subject_name(nombre)
-        .issuer_name(nombre)  # Autofirmado, así que el sujeto es igual al emisor
-        .public_key(clave_publica)  # Aquí usamos la clave pública
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=365))  # Certificado válido por 1 año
-        .add_extension(
-            x509.BasicConstraints(ca=True, path_length=None), critical=True,
-        )
-        .sign(clave_privada, hashes.SHA256(), default_backend())
-    )
-
-    return certificado
-
-# Función para crear un certificado para un usuario firmado por la AC
-def crear_certificado_usuario(nombre_usuario, clave_publica_usuario, clave_privada_ac, certificado_ac):
-    nombre = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, nombre_usuario),
-    ])
-
-    certificado = (
-        x509.CertificateBuilder()
-        .subject_name(nombre)
-        .issuer_name(certificado_ac.subject)  # La AC es la que firma el certificado
-        .public_key(clave_publica_usuario)
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=365))  # Certificado válido por 1 año
-        .add_extension(
-            x509.BasicConstraints(ca=False, path_length=None), critical=True,
-        )
-        .sign(clave_privada_ac, hashes.SHA256(), default_backend())
-    )
-
-    return certificado
-
-# Función para guardar certificados y claves en archivos PEM
-def guardar_certificado_y_claves(nombre_archivo, certificado, clave_privada):
-    # Guardar certificado
-    with open(f"{nombre_archivo}_cert.pem", "wb") as f:
-        f.write(certificado.public_bytes(serialization.Encoding.PEM))
-
-    # Guardar clave privada
-    with open(f"{nombre_archivo}_key.pem", "wb") as f:
-        f.write(
-            clave_privada.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption(),
-            )
-        )
-
-
-
 '''PRUEBAS DE LOS CIFRADOS'''
-
-
-# Generación de clave AES de 256 bits (32 bytes)
-clave_aes = get_random_bytes(32)  # 256 bits
-
-# Mensaje a cifrar
-mensaje = "Aqui estara el mensaje que queramos cifrar luego"
-
-# Cifrar el mensaje
-texto_cifrado, nonce, tag = cifrar_aes(mensaje, clave_aes)
-logger.info(f"Texto cifrado (base64): {base64.b64encode(texto_cifrado).decode()}")
-logger.info(f"Nonce (base64): {base64.b64encode(nonce).decode()}")
-logger.info(f"Tag (base64): {base64.b64encode(tag).decode()}")
-logger.info(f"Algoritmo: AES-GCM, Longitud de clave: {len(clave_aes) * 8} bits")
-
-# Descifrar el mensaje
-texto_descifrado = descifrar_aes(texto_cifrado, nonce, tag, clave_aes)
-
-if texto_descifrado:
-    logger.info(f"Texto descifrado: {texto_descifrado}")
 
 
 
@@ -308,43 +162,6 @@ logger.info(f"HMAC generado (base64): {hmac_generado}")
 
 # Verificar el HMAC generado (en una simulación de que es recibido correctamente)
 es_valido = verificar_hmac(mensaje, clave_secreta, hmac_generado)
-
-
-
-
-# Generar un par de claves RSA
-clave_privada, clave_publica = generar_claves_rsa_firma()
-
-# Mensaje a firmar
-mensaje = "Este es un mensaje confidencial."
-
-# Firmar el mensaje
-firma_digital = firmar_mensaje(mensaje, clave_privada)
-logger.info(f"Firma digital generada (base64): {firma_digital}")
-
-# Verificar la firma
-es_valida = verificar_firma(mensaje, firma_digital, clave_publica)
-
-
-
-
-# Crear la AC raíz y su certificado autofirmado
-nombre_ac_raiz = "AC_Raiz_Segura"
-clave_privada_ac, _ = generar_claves_rsa_certificado()
-certificado_ac = crear_certificado_autofirmado(nombre_ac_raiz, clave_privada_ac)
-
-logger.info(f"Certificado autofirmado de la AC raíz '{nombre_ac_raiz}' creado.")
-guardar_certificado_y_claves("ac_raiz", certificado_ac, clave_privada_ac)
-
-# Crear un certificado para un usuario firmado por la AC raíz
-nombre_usuario = "Usuario_1"
-clave_privada_usuario, clave_publica_usuario = generar_claves_rsa_certificado()
-certificado_usuario = crear_certificado_usuario(nombre_usuario, clave_publica_usuario, clave_privada_ac, certificado_ac)
-
-logger.info(f"Certificado del usuario '{nombre_usuario}' creado y firmado por la AC raíz.")
-guardar_certificado_y_claves("usuario_1", certificado_usuario, clave_privada_usuario)
-
-
 
 
 
@@ -501,6 +318,48 @@ def futbol():
 def hipica():
     usuario = session.get('usuario')
     return render_template('hipica.html', usuario=usuario)
+
+@app.route('/apostar_hipica', methods=["POST"])
+def apostar_hipica():
+    if 'usuario' in session:
+        horse_number = request.form.get('horseNumber')  # Recoger el valor de horseNumber
+        clave_aes = session.get('clave_aes')
+
+        if not clave_aes:
+            clave_aes = get_random_bytes(32)  # Generar una nueva clave AES si no existe
+            session['clave_aes'] = clave_aes
+
+        # Cifrar el número del caballo elegido
+        texto_cifrado, nonce, tag = cifrar_aes(horse_number, clave_aes)
+
+        # Convertir el texto cifrado, nonce y tag a base64
+        texto_cifrado_base64 = base64.b64encode(texto_cifrado).decode()
+        nonce_base64 = base64.b64encode(nonce).decode()
+        tag_base64 = base64.b64encode(tag).decode()
+
+        # Guardar la apuesta cifrada en la memoria temporal de Flask
+        session['apuesta_hipica'] = {
+            'texto_cifrado': texto_cifrado_base64,
+            'nonce': nonce_base64,
+            'tag': tag_base64
+        }
+
+        # Log para comprobar que se guarda correctamente
+        logger.info("Apuesta realizada por el usuario: %s", session['usuario']['username'])
+        logger.info("Apuesta cifrada (base64): %s", texto_cifrado_base64)
+        logger.info("Nonce (base64): %s", nonce_base64)
+        logger.info("Tag (base64): %s", tag_base64)
+
+        # Descifrar el mensaje
+        texto_descifrado = descifrar_aes(texto_cifrado, nonce, tag, clave_aes)
+
+        if texto_descifrado:
+            logger.info(f"Texto descifrado: {texto_descifrado}")
+
+        return ('', 204)
+    else:
+        return redirect(url_for('login'))
+
 
 @app.route('/baloncesto')
 def baloncesto():

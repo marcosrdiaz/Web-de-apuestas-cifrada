@@ -57,8 +57,10 @@
         </div>
     </header>
     <div class="form-container">
-        <input type="number" id="horseNumber" placeholder="Número de caballo (1-3)" min="1" max="3" required>
-        <button id="startRace">Iniciar Carrera</button>
+        <form action="/apostar_hipica" method="POST">
+            <input type="number" id="horseNumber" name="horseNumber" placeholder="Número de caballo (1-3)" min="1" max="3" required>
+            <button id="startRace" type="submit">Iniciar Carrera</button>
+        </form>
     </div>
     <div id="raceTrack" style="position: relative; width: 800px; height: 400px; margin: auto;">
         <canvas id="raceCanvas" width="800" height="400"></canvas>

@@ -1,1 +1,8 @@
-[{"username": "asd", "email": "asd@g.com", "password": "scrypt:32768:8:1$KlXqrLaM7viud4zw$e266f282062ae2aadb0b77a0aa64754634df312c61db298c12c2d386d99eae59485ed2d8aa5bcbd901713718379d091365e5015aaf59a61cce2561cd9ec4a697", "balance": 0}, {"username": "rod", "email": "rod@g.com", "password": "scrypt:32768:8:1$iH9R8vUUgy4BB8ui$fc426dd76f1a6a521d3a3c6e26eb176e3ddf44f3d7b72e91dacfd4db206de74332c8d5cfcdbbd61f44d7398c78eb54c3a054c10a01075c34da22f852d88b8656", "balance": 0}, {"username": "a", "email": "a@g.com", "password": "scrypt:32768:8:1$wa61BGTSIhLSgCTV$b2765fe5232ecdd46d51c7963f584b25ab61d0179e5f2c4b5f63a4f535341f10984fce62b803ffe5fc33e93cfa869c613d810dc1c2f19ac18391988a6bcf8388", "balance": 0}]
+[
+    {
+        "username": "a",
+        "email": "a@g.com",
+        "password": "scrypt:32768:8:1$qTGvpgPUvBxgqGWf$886775f856afb2370364a8ef3fffd47db0997e45bacace737e7da3f53c286310d96e4b739427c8afce79a7f5881d6646a60d4fffa07eb906dd278aef43ea9815",
+        "balance": 0
+    }
+]
