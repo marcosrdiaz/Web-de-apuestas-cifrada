@@ -33,24 +33,13 @@ def leer_usuarios():
 
 
 # Función para guardar un nuevo usuario en el archivo JSON
-def guardar_usuario(nuevo_usuario):
+def guardar_usuario(usuarios):
     try:
-        usuarios = leer_usuarios()
-
-        # Verificar si el nombre de usuario o el correo ya existen
-        for usuario in usuarios:
-            if usuario['username'] == nuevo_usuario['username'] or usuario['email'] == nuevo_usuario['email']:
-                return False
-
-        usuarios.append(nuevo_usuario)
-
-        # Guardar el nuevo arreglo de usuarios en formato JSON legible
         with open(RUTA_JSON, 'w') as f:
             json.dump(usuarios, f, indent=4)
-        return True
-    except (IOError, json.JSONDecodeError) as e:
-        print(f"Error al escribir el archivo JSON: {e}")
-        return False
+        logger.info("Usuarios guardados correctamente en el archivo JSON.")
+    except (IOError, TypeError) as e:
+        logger.error(f"Error al guardar el archivo JSON: {e}")
 
 # Función para validar el formato de correo electrónico
 def validar_email(email):
@@ -148,7 +137,7 @@ def verificar_hmac(mensaje, clave, hmac_proporcionado):
 
 
 
-
+'''
 
 # Clave secreta (debe ser compartida entre emisor y receptor)
 clave_secreta = b'secret_key_very_secure'
@@ -163,44 +152,63 @@ logger.info(f"HMAC generado (base64): {hmac_generado}")
 # Verificar el HMAC generado (en una simulación de que es recibido correctamente)
 es_valido = verificar_hmac(mensaje, clave_secreta, hmac_generado)
 
-
-
+'''
 
 @app.route('/perfil')
 def perfil():
+    # Verificar si el usuario está en la sesión
     if 'usuario' in session:
-        usuario = session['usuario']
-        return render_template('perfil.html', usuario=usuario)
-    else:
-        return redirect(url_for('login'))
+        # Leer usuarios desde el archivo JSON
+        usuarios = leer_usuarios()
+
+        # Buscar el usuario en la lista de usuarios
+        usuario_email = session['usuario']['email']
+        for usuario in usuarios:
+            if usuario['email'] == usuario_email:
+                # Actualizar la sesión con el balance del usuario desde el archivo JSON
+                session['usuario']['balance'] = usuario['balance']
+                logger.info(f"Datos de la sesión que se pasan a la plantilla: {session['usuario']}")
+
+                # Renderizar la plantilla con los datos del usuario
+                return render_template('perfil.html', usuario=session['usuario'])  # Pasar el usuario a la plantilla
+
+    # Si no hay usuario en la sesión, redirigir a la página de inicio de sesión
+    return redirect(url_for('login'))
 
 
 # Ruta para modificar el balance
 @app.route('/modificar_balance', methods=["POST"])
 def modificar_balance():
     if 'usuario' in session:
-        action = request.form.get('accion')
-        cantidad = float(request.form.get('cantidad'))
+        accion = request.form.get('accion')  # Obtener la acción: 'añadir' o 'retirar'
+        cantidad = float(request.form.get('cantidad'))  # Obtener la cantidad del formulario
 
         # Leer usuarios desde el archivo JSON
         usuarios = leer_usuarios()
-        usuario_email = session['usuario']['email']
+        usuario_email = session['usuario']['email']  # Identificar al usuario en sesión
 
-        # Actualizar balance según la acción
+        # Actualizar el balance según la acción y el usuario en sesión
         for usuario in usuarios:
             if usuario['email'] == usuario_email:
-                if action == 'añadir':
+                if accion == 'añadir':  # Si la acción es añadir
                     usuario['balance'] += cantidad
-                elif action == 'retirar' and usuario['balance'] >= cantidad:
-                    usuario['balance'] -= cantidad
+                    logger.info(f"Añadiendo {cantidad}. Nuevo balance: {usuario['balance']}")
+                elif accion == 'retirar':  # Si la acción es retirar
+                    if usuario['balance'] >= cantidad:  # Verificar que haya suficiente saldo
+                        usuario['balance'] -= cantidad
+                        logger.info(f"Retirando {cantidad}. Nuevo balance: {usuario['balance']}")
+                    else:
+                        return jsonify({'message': 'Fondos insuficientes'}), 400
+                session['usuario']['balance'] = usuario['balance']
                 break
 
         # Guardar cambios en el archivo JSON
-        guardar_usuario(usuarios)
+        with open(RUTA_JSON, 'w') as f:
+            json.dump(usuarios, f, indent=4)
 
-        # Actualizar balance en la sesión
-        session['usuario']['balance'] = usuario['balance']
-        return redirect(url_for('perfil'))  # Regresar a la página de perfil
+        logger.info(f"Datos de la sesión que se pasan a la plantilla: {session['usuario']}")
+        # Redirigir a la página de perfil con el balance actualizado
+        return redirect(url_for('perfil'))
 
     return redirect(url_for('login'))
 
@@ -212,25 +220,39 @@ def actualizar_datos():
         nuevo_email = request.form.get('nuevo_email')
         nuevo_username = request.form.get('nuevo_username')
 
+        # Verificar que se han proporcionado datos
+        if not nuevo_email or not nuevo_username:
+            logger.error("Intento de actualización fallido: campos vacíos.")
+            return redirect(url_for('perfil'))  # Regresar a la página de perfil
+
         # Leer usuarios desde el archivo JSON
         usuarios = leer_usuarios()
         usuario_email = session['usuario']['email']
 
         # Actualizar datos del usuario
+        usuario_encontrado = False  # Variable para verificar si se encontró el usuario
         for usuario in usuarios:
             if usuario['email'] == usuario_email:
                 usuario['email'] = nuevo_email
                 usuario['username'] = nuevo_username
+                usuario_encontrado = True
+                logger.info(f"Datos actualizados para el usuario: {usuario['username']}, nuevo email: {nuevo_email}")
                 break
 
-        # Guardar cambios en el archivo JSON
-        guardar_usuario(usuarios)
+        if usuario_encontrado:
+            # Guardar cambios en el archivo JSON
+            guardar_usuario(usuarios)
 
-        # Actualizar datos en la sesión
-        session['usuario']['email'] = nuevo_email
-        session['usuario']['username'] = nuevo_username
+            # Actualizar datos en la sesión
+            session['usuario']['email'] = nuevo_email
+            session['usuario']['username'] = nuevo_username
+            logger.info("Datos de usuario actualizados en la sesión.")
+        else:
+            logger.error("No se pudo encontrar el usuario para actualizar.")
+
         return redirect(url_for('perfil'))  # Regresar a la página de perfil
 
+    logger.warning("Intento de actualización de datos sin sesión de usuario.")
     return redirect(url_for('login'))
 
 # Ruta para mostrar la página principal (index.html)
@@ -312,6 +334,22 @@ def login():
 def futbol():
     usuario = session.get('usuario')  # Obtener al usuario de la sesión si está autenticado
     return render_template('futbol.html', usuario=usuario)
+
+
+@app.route('/hacer_apuesta', methods=['POST'])
+def hacer_apuesta():
+    if 'usuario' not in session:
+        return jsonify({'error': 'No estás autenticado'}), 401
+
+    apuesta = request.json.get('apuesta')  # Recibir la apuesta desde el cliente
+    if not apuesta:
+        return jsonify({'error': 'No se ha proporcionado ninguna apuesta'}), 400
+
+    # Aquí puedes guardar la apuesta en una base de datos o en un archivo
+    logger.info(f"Apuesta registrada: {apuesta} por el usuario {session['usuario']['username']}")
+
+    # Responder al cliente
+    return jsonify({'mensaje': 'Apuesta registrada correctamente'}), 200
 
 
 @app.route('/hipica')

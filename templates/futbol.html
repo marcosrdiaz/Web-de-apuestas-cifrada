@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <title>Ejemplo de Página HTML</title>
+    <title>Apuestas de Futbol</title>
 </head>
 <body>
     <!-- Header -->
@@ -28,7 +28,7 @@
                         <span class="user-name">Bienvenido, {{ usuario['username'] }} &#x25BC;</span> <!-- Unicode para flecha hacia abajo -->
                         <div class="user-dropdown">
                                 <a href="/perfil">Mi Perfil</a>
-                                <a href="/balance">Balance: {{ usuario['balance'] }}€</a>
+
                                 <a href="/logout">Cerrar Sesión</a>
                         </div>
                     </div>
@@ -41,5 +41,46 @@
             </div>
         </div>
     </header>
+
+    <div class="apuestas" id="apuestas">
+        <h2>Apuestas para el <span id="match-title">Partido XYZ</span></h2>
+        <div class="bet-container">
+            <!-- Tarjeta de apuesta 1 -->
+            <div class="bet-card">
+                <h2>Resultado del Partido</h2>
+                <p>¿Quién ganará?</p>
+                <button class="bet-option" data-bet="Equipo A gana">Apuesta por el Equipo A</button><br><br>
+                <button class="bet-option" data-bet="Equipo B gana">Apuesta por el Equipo B</button><br><br>
+                <button class="bet-option" data-bet="Empate">Apuesta por el Empate</button>
+            </div>
+
+            <!-- Tarjeta de apuesta 2 -->
+            <div class="bet-card">
+                <h2>Número de Goles</h2>
+                <p>¿Cuántos goles se marcarán en el partido?</p>
+                <button class="bet-option" data-bet="Menos de 2.5 Goles">Menos de 2.5 Goles</button><br><br>
+                <button class="bet-option" data-bet="Más de 2.5 Goles">Más de 2.5 Goles</button>
+            </div>
+
+            <!-- Tarjeta de apuesta 3 -->
+            <div class="bet-card">
+                <h2>Primer Gol</h2>
+                <p>¿Quién marcará el primer gol?</p>
+                <button class="bet-option" data-bet="Equipo A marca primero">Equipo A</button><br><br>
+                <button class="bet-option" data-bet="Equipo B marca primero">Equipo B</button><br><br>
+                <button class="bet-option" data-bet="Nadie (0-0)">Nadie (0-0)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Tus Apuestas</h2>
+        <ul class="selected-bets" id="selectedBetsList">
+            <li>No has seleccionado ninguna apuesta aún.</li>
+        </ul>
+        <button id="submitBets" onclick="submitBets()">Hacer Apuesta</button>
+    </div>
+
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

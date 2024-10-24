@@ -3,6 +3,6 @@
         "username": "a",
         "email": "a@g.com",
         "password": "scrypt:32768:8:1$qTGvpgPUvBxgqGWf$886775f856afb2370364a8ef3fffd47db0997e45bacace737e7da3f53c286310d96e4b739427c8afce79a7f5881d6646a60d4fffa07eb906dd278aef43ea9815",
-        "balance": 0
+        "balance": 102003.0
     }
 ]
