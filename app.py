@@ -33,11 +33,19 @@ def leer_usuarios():
 
 
 # Función para guardar un nuevo usuario en el archivo JSON
-def guardar_usuario(usuarios):
+def guardar_usuario(nuevo_usuario):
     try:
+        usuarios = leer_usuarios()
+        # Verificar si el nombre de usuario o el correo ya existen
+        for usuario in usuarios:
+            if usuario['username'] == nuevo_usuario['username'] or usuario['email'] == nuevo_usuario['email']:
+                return False
+
+        usuarios.append(nuevo_usuario)
         with open(RUTA_JSON, 'w') as f:
             json.dump(usuarios, f, indent=4)
         logger.info("Usuarios guardados correctamente en el archivo JSON.")
+        return True
     except (IOError, TypeError) as e:
         logger.error(f"Error al guardar el archivo JSON: {e}")
 
@@ -78,10 +86,8 @@ def cifrar_aes(texto_plano, clave):
     # Crea un objeto de cifrado AES en modo GCM
     cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
 
-    # Cifra el texto plano
     texto_cifrado, tag = cipher.encrypt_and_digest(texto_plano.encode())
 
-    # Devuelve el texto cifrado, el nonce y el tag (para autenticar el mensaje)
     return texto_cifrado, nonce, tag
 
 # Función para descifrar un mensaje cifrado con AES-GCM
@@ -153,6 +159,84 @@ logger.info(f"HMAC generado (base64): {hmac_generado}")
 es_valido = verificar_hmac(mensaje, clave_secreta, hmac_generado)
 
 '''
+RUTA_JSON_apuesta = 'apuestas.json'
+
+def leer_apuestas():
+    try:
+        with open(RUTA_JSON_apuesta, 'r') as f:
+            return json.load(f)
+    except (IOError, json.JSONDecodeError) as e:
+        print(f"Error al leer el archivo JSON: {e}")
+        return []
+
+# Función para guardar un nuevo usuario en el archivo JSON
+def guardar_apuesta(nueva_apuesta):
+    try:
+        apuestas = leer_apuestas()
+        # Verificar si el nombre de usuario o el correo ya existen
+        for apuesta in apuestas:
+            if apuesta['username'] == nueva_apuesta['username'] or apuesta['email'] == nueva_apuesta['email']:
+                return False
+
+        apuestas.append(nueva_apuesta)
+        with open(RUTA_JSON_apuesta, 'w') as f:
+            json.dump(apuestas, f, indent=4)
+        logger.info("Apuestas guardadas correctamente en el archivo JSON.")
+        return True
+    except (IOError, TypeError) as e:
+        logger.error(f"Error al guardar el archivo JSON: {e}")
+
+
+
+
+
+
+def crear_perfil_usuario():
+    print("Llega")
+    print(session)
+    if 'usuario' in session:
+        print("llega")
+        # Obtener el nombre de usuario y el correo electrónico de la sesión
+        usuario = session['usuario']['username']
+        email = session['usuario']['email']
+
+        print(email)
+        print(usuario)
+
+        # Verificar que session tenga los datos necesarios
+        if not email or not usuario:
+            print("Error: No se encontraron datos de sesión.")
+            return
+
+        # Cargar datos actuales del archivo si existe, si no, crear una nueva lista
+        if os.path.exists(RUTA_JSON_apuesta):
+            with open(RUTA_JSON_apuesta, 'r') as f:
+                datos = json.load(f)
+        else:
+            datos = []
+
+        print(datos)
+
+        # Verificar si ya existe un perfil con el mismo email
+        if not any(perfil.get('email') == email for perfil in datos):
+            nuevo_perfil = {
+                'email': email,
+                'nombre_usuario': usuario,
+                'apuestas': []  # Lista vacía de apuestas
+            }
+            datos.append(nuevo_perfil)
+
+            with open(RUTA_JSON_apuesta, 'w') as f:
+                json.dump(datos, f, indent=4)
+            print(f"Perfil creado para {usuario} con email {email}.")
+        else:
+            print("El perfil ya existe.")
+    else:
+        print("aqui")
+        return redirect(url_for('login'))
+
+
+
 
 @app.route('/perfil')
 def perfil():
@@ -246,14 +330,28 @@ def actualizar_datos():
             # Actualizar datos en la sesión
             session['usuario']['email'] = nuevo_email
             session['usuario']['username'] = nuevo_username
-            logger.info("Datos de usuario actualizados en la sesión.")
+            logger.info(f"Datos de usuario actualizados en la sesión. Usuario: {session['usuario']}")
         else:
             logger.error("No se pudo encontrar el usuario para actualizar.")
+
+            # Guardar cambios en el archivo JSON
+        with open(RUTA_JSON, 'w') as f:
+            json.dump(usuarios, f, indent=4)
 
         return redirect(url_for('perfil'))  # Regresar a la página de perfil
 
     logger.warning("Intento de actualización de datos sin sesión de usuario.")
     return redirect(url_for('login'))
+
+
+
+
+
+
+
+
+
+
 
 # Ruta para mostrar la página principal (index.html)
 @app.route('/')
@@ -333,23 +431,23 @@ def login():
 @app.route('/futbol')
 def futbol():
     usuario = session.get('usuario')  # Obtener al usuario de la sesión si está autenticado
+    crear_perfil_usuario()
     return render_template('futbol.html', usuario=usuario)
 
 
+
 @app.route('/hacer_apuesta', methods=['POST'])
-def hacer_apuesta():
-    if 'usuario' not in session:
-        return jsonify({'error': 'No estás autenticado'}), 401
+def agregar_apuesta():
+    apuesta = request.json.get('apuesta')
+    if 'apuestas' not in session:
+        session['apuestas'] = []
+    session['apuestas'].append(apuesta)
+    return jsonify({"status": "apuesta agregada", "apuestas": session['apuestas']})
 
-    apuesta = request.json.get('apuesta')  # Recibir la apuesta desde el cliente
-    if not apuesta:
-        return jsonify({'error': 'No se ha proporcionado ninguna apuesta'}), 400
-
-    # Aquí puedes guardar la apuesta en una base de datos o en un archivo
-    logger.info(f"Apuesta registrada: {apuesta} por el usuario {session['usuario']['username']}")
-
-    # Responder al cliente
-    return jsonify({'mensaje': 'Apuesta registrada correctamente'}), 200
+@app.route('/obtener_apuestas', methods=['GET'])
+def obtener_apuestas():
+    apuestas = session.get('apuestas', [])
+    return jsonify(apuestas)
 
 
 @app.route('/hipica')

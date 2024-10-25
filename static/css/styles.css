@@ -421,3 +421,27 @@ canvas {
     top: 30vh;
 }
 
+
+
+#lista-apuestas {
+    list-style-type: none;
+    padding: 0;
+}
+
+#lista-apuestas li {
+    background-color: #f3f3f3;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+button {
+    margin: 5px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+
+

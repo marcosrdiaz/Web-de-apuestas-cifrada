@@ -49,35 +49,33 @@
             <div class="bet-card">
                 <h2>Resultado del Partido</h2>
                 <p>¿Quién ganará?</p>
-                <button class="bet-option" data-bet="Equipo A gana">Apuesta por el Equipo A</button><br><br>
-                <button class="bet-option" data-bet="Equipo B gana">Apuesta por el Equipo B</button><br><br>
-                <button class="bet-option" data-bet="Empate">Apuesta por el Empate</button>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Gana Equipo A</button>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Gana por el Equipo B</button>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Empate</button>
             </div>
 
             <!-- Tarjeta de apuesta 2 -->
             <div class="bet-card">
                 <h2>Número de Goles</h2>
                 <p>¿Cuántos goles se marcarán en el partido?</p>
-                <button class="bet-option" data-bet="Menos de 2.5 Goles">Menos de 2.5 Goles</button><br><br>
-                <button class="bet-option" data-bet="Más de 2.5 Goles">Más de 2.5 Goles</button>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Menos de 2.5 Goles</button><br><br>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Más de 2.5 Goles</button>
             </div>
 
             <!-- Tarjeta de apuesta 3 -->
             <div class="bet-card">
                 <h2>Primer Gol</h2>
                 <p>¿Quién marcará el primer gol?</p>
-                <button class="bet-option" data-bet="Equipo A marca primero">Equipo A</button><br><br>
-                <button class="bet-option" data-bet="Equipo B marca primero">Equipo B</button><br><br>
-                <button class="bet-option" data-bet="Nadie (0-0)">Nadie (0-0)</button>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Equipo A</button><br><br>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Equipo B</button><br><br>
+                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Nadie (0-0)</button>
             </div>
         </div>
     </div>
 
     <div class="sidebar">
         <h2>Tus Apuestas</h2>
-        <ul class="selected-bets" id="selectedBetsList">
-            <li>No has seleccionado ninguna apuesta aún.</li>
-        </ul>
+        <ul class="selected-bets" id="selectedBetsList"></ul>
         <button id="submitBets" onclick="submitBets()">Hacer Apuesta</button>
     </div>
 
