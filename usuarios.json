@@ -1,26 +1,32 @@
 [
     {
+        "username": "r",
+        "email": "r@g.com",
+        "password": "U51IOK4cENS0xhauSLotXwMjtcsR+nIOcXHSGKyRtUU=",
+        "salt": "fpYgVzhLlitLULHQcmKnHg==",
+        "balance": "mw==",
+        "nonce": "Ncmw7NuujGrQPMzT",
+        "tag": "zRG3IDDlb9TFeJ0rgGNjXg==",
+        "aes_key": "GcOhqE7WtzajZfln3gNv+Y6lVdGbgOc3yUgJbgQvq7I="
+    },
+    {
         "username": "m",
-        "email": "marcos@g.com",
-        "password": "scrypt:32768:8:1$wNlxN0qQJL5of5Y8$679de9a75e3fa3a8e29cf7824596533b1e5ca0d0f3d1c1f47e63e4b7415c1997a5e675feae05bfe38ae68825cf6d279493fcdd170cfdf23672194f2398e704ea",
-        "balance": 90012346.0
+        "email": "m@g.com",
+        "password": "pGjltNJpPPzEQtmoaqsuG9DXfnpavYqKcIrJBZDHbkM=",
+        "salt": "1cTgqLqG89bCW40NTBcs5g==",
+        "balance": "AF5U",
+        "nonce": "ySNWM8dyMqiW/snB",
+        "tag": "HYWftV7yX+e1mxGSbB7cJQ==",
+        "aes_key": "pyYoQSjimzqzUUq21lO9YlV6HG2gWZS27QzYHy1VhVY="
     },
     {
-        "username": "sabana",
-        "email": "s@g.com",
-        "password": "scrypt:32768:8:1$nHkr60yl05HnO7pJ$9382991a98c19ee2edcfe26c5a012ebd4ca9b9091625103427ae3791e9666ac1e0875fbc477aebb883a73b729f820f19ec4f6adb4ddbab6762ace2d24486673a",
-        "balance": 19000.3
-    },
-    {
-        "username": "alerod",
-        "email": "alerod@g.com",
-        "password": "scrypt:32768:8:1$0W32gUmhYLMHJT0Z$6e1ee4c5935d3819e2cc099ccca3656572331bb30d694ed985242ef8d06665c28728427239d2971131ab27f7a0297f23cd3eddb8fda31433f02ce001b1b9df3d",
-        "balance": 0
-    },
-    {
-        "username": "ale",
-        "email": "ale@g.com",
-        "password": "scrypt:32768:8:1$TSa5X1jspuFZ4N8e$858e6ef751e82f01a994389c0602cbc6caa7939141d9d01358d0937e7743c8fb37a6640af8452eace672bd597b9cd25da4ad1625fa778283fa75c4a6c0171fe0",
-        "balance": 0
+        "username": "a",
+        "email": "a@g.com",
+        "password": "+Q2dbBVnmfr5SgD4Xxee0nxGUdKKh0PCUN3qQFSMS0k=",
+        "salt": "F2ekYMTdaOzYE2R/KIW9Rg==",
+        "balance": "37ZhorY=",
+        "nonce": "uhNsFZjv11i+ESI9",
+        "tag": "3Oh1m1tEXm6+YFDOcFdxNQ==",
+        "aes_key": "PNW47n/1PtmM3s3ZGE8MNug/LbcUKic8QY6zR+dFC+M="
     }
 ]

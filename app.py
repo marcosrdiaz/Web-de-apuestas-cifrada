@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import json
 import os
-from werkzeug.security import generate_password_hash, check_password_hash
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 import re
 
 from Crypto.Cipher import AES
@@ -78,26 +78,45 @@ logger = logging.getLogger()
 
 
 
+def proteger_contraseña(password):
+
+    salt = os.urandom(16)
+    # derive
+    kdf = Scrypt(
+        salt=salt,
+        length=32,
+        n=2 ** 14,
+        r=8,
+        p=1,
+    )
+    password_token = kdf.derive(password.encode('utf-8'))
+    password_token_b64 = base64.b64encode(password_token).decode('utf-8')  # Convertir a Base64 para guardarla
+    return password_token_b64, salt
+
+
 # Función para cifrar un mensaje con AES-GCM
-def cifrar_aes(texto_plano, clave):
+def cifrar_aes(texto_plano, clave, nonce=None):
     # Genera un nonce (vector de inicialización) aleatorio
-    nonce = get_random_bytes(12)
+    if nonce is None:
+        nonce = get_random_bytes(12)
 
     # Crea un objeto de cifrado AES en modo GCM
     cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
 
     texto_cifrado, tag = cipher.encrypt_and_digest(texto_plano.encode())
-
+    logger.info(f"Cif texto_cifrado: {texto_cifrado}, nonce: {nonce}, tag: {tag}")
     return texto_cifrado, nonce, tag
 
 # Función para descifrar un mensaje cifrado con AES-GCM
 def descifrar_aes(texto_cifrado, nonce, tag, clave):
     # Crea un objeto de descifrado AES en modo GCM con el mismo nonce
+    logger.info(f"Desc texto_cifrado: {texto_cifrado}, nonce: {nonce}, tag: {tag}")
     cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
 
     # Descifra el texto cifrado y verifica la integridad con el tag
     try:
         texto_descifrado = cipher.decrypt_and_verify(texto_cifrado, tag)
+        logger.info("descifrado")
         return texto_descifrado.decode()
     except ValueError:
         logger.error("Error: el mensaje ha sido alterado o la clave es incorrecta.")
@@ -249,8 +268,12 @@ def perfil():
         usuario_email = session['usuario']['email']
         for usuario in usuarios:
             if usuario['email'] == usuario_email:
+                logger.info("antes del error")
                 # Actualizar la sesión con el balance del usuario desde el archivo JSON
-                session['usuario']['balance'] = usuario['balance']
+                #Como esta guardado en base 64 lo pasamos de vuelta a bytes
+                session['usuario']['balance'] = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
+                                                              base64.b64decode(usuario['tag']), base64.b64decode(usuario['aes_key']))
+                logger.info("despues del error")
                 logger.info(f"Datos de la sesión que se pasan a la plantilla: {session['usuario']}")
 
                 # Renderizar la plantilla con los datos del usuario
@@ -273,17 +296,27 @@ def modificar_balance():
 
         # Actualizar el balance según la acción y el usuario en sesión
         for usuario in usuarios:
+
             if usuario['email'] == usuario_email:
+                logger.info("aqui pasa")
+                balance = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
+                                        base64.b64decode(usuario['tag']), base64.b64decode(usuario['aes_key']))
+                balance = float(balance)
                 if accion == 'añadir':  # Si la acción es añadir
-                    usuario['balance'] += cantidad
-                    logger.info(f"Añadiendo {cantidad}. Nuevo balance: {usuario['balance']}")
+                    balance += cantidad
+                    logger.info(f"Añadiendo {cantidad}. Nuevo balance: {balance}")
+                    balance = str(balance)
+                    balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['aes_key']), base64.b64decode(usuario['nonce']) )
+                    usuario['balance'] = base64.b64encode(balance_cifrado).decode('utf-8')
+                    usuario['tag'] = base64.b64encode(tag).decode('utf-8')
+                    logger.info("balance nuevo metido")
                 elif accion == 'retirar':  # Si la acción es retirar
                     if usuario['balance'] >= cantidad:  # Verificar que haya suficiente saldo
                         usuario['balance'] -= cantidad
                         logger.info(f"Retirando {cantidad}. Nuevo balance: {usuario['balance']}")
                     else:
                         return jsonify({'message': 'Fondos insuficientes'}), 400
-                session['usuario']['balance'] = usuario['balance']
+                session['usuario']['balance'] = balance
                 break
 
         # Guardar cambios en el archivo JSON
@@ -381,14 +414,25 @@ def register():
         if not validar_contraseña(password):
             return jsonify({'message': 'La contraseña debe tener al menos 8 caracteres'}), 400
 
-        # Cifrar la contraseña
-        hashed_password = generate_password_hash(password)
+        password_token_b64, salt = proteger_contraseña(password)
+
+        # Generar claves únicas para este usuario
+        aes_key = get_random_bytes(32)  # Clave única de cifrado AES de 256 bits
+
+        balance_inicial = "0"
+
+        # Cifrar el balance usando AES-GCM con la clave única
+        balance_cifrado, nonce, tag = cifrar_aes(balance_inicial, aes_key)
 
         nuevo_usuario = {
             'username': username,
             'email': email,
-            'password': hashed_password,  # Guardar la contraseña cifrada
-            'balance': 0
+            'password': password_token_b64, # Guardar la contraseña cifrada
+            'salt': base64.b64encode(salt).decode('utf-8'),
+            'balance': base64.b64encode(balance_cifrado).decode('utf-8'),
+            'nonce': base64.b64encode(nonce).decode('utf-8'),
+            'tag': base64.b64encode(tag).decode('utf-8'),
+            'aes_key': base64.b64encode(aes_key).decode('utf-8')  # Guardar la clave de cifrado cifrada
         }
 
         # Intentar guardar el nuevo usuario
@@ -413,13 +457,34 @@ def login():
         usuarios = leer_usuarios()
         usuario = next((u for u in usuarios if u['email'] == email), None)
 
-        if usuario and check_password_hash(usuario['password'], password):
-            session['usuario'] = {
-                'username': usuario['username'],
-                'email': usuario['email'],
-                'balance': usuario['balance']  # Incluir el balance
-            }
-            return redirect(url_for('index'))
+        if usuario:
+            # Decodificar el salt almacenado desde Base64
+            salt = base64.b64decode(usuario['salt'])
+
+            # Derivar la clave usando la contraseña ingresada y el salt almacenado
+            kdf = Scrypt(
+                salt=salt,
+                length=32,
+                n=2 ** 14,
+                r=8,
+                p=1
+            )
+            password_token_intentada = kdf.derive(password.encode('utf-8'))
+
+            # Convertir la clave derivada a Base64 para comparación
+            password_token_b64 = base64.b64encode(password_token_intentada).decode('utf-8')
+            logger.info("llega")
+
+            # Comparar las claves derivadas
+            if password_token_b64 == usuario['password']:
+                session['usuario'] = {
+                    'username': usuario['username'],
+                    'email': usuario['email'],
+                    'balance': usuario['balance']  # Incluir el balance
+                }
+                return redirect(url_for('index'))
+            else:
+                return jsonify({'message': 'Credenciales incorrectas'}), 401
         else:
             return jsonify({'message': 'Credenciales incorrectas'}), 401
 
