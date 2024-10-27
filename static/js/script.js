@@ -89,3 +89,29 @@ document.getElementById('logout-btn').addEventListener('click', function(event) 
     logout();
 });
 
+function enviarApuesta(partido, apuesta) {
+    fetch("/guardar_apuesta", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ partido, apuesta })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarApuestaEnSidebar(partido, apuesta); // Muestra en la sidebar
+        } else {
+            alert("Hubo un problema al guardar la apuesta.");
+        }
+    })
+    .catch(error => console.error("Error al enviar la apuesta:", error));
+}
+
+// Función para mostrar la apuesta en la sidebar sin recargar la página
+function mostrarApuestaEnSidebar(partido, apuesta) {
+    const listaApuestas = document.getElementById("selectedBetsList");
+    const apuestaItem = document.createElement("li");
+    apuestaItem.textContent = `Partido: ${partido} - Apuesta: ${apuesta}`;
+    listaApuestas.appendChild(apuestaItem);
+}

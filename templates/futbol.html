@@ -46,36 +46,35 @@
         <h2>Apuestas Champions League</span></h2>
         <!-- Partido 1 -->
         <div class="bet-container">
-            <h3>Partido 1: Manchester City vs Ajax</h3>
+            <h3>Partido 1: Manchester City - Bayern Münich</h3>
             <p>¿Quién ganará el partido?</p>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=1&equipo=A'">Gana Equipo A</button>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=1&empate=true'">Empate</button>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=1&equipo=B'">Gana Equipo B</button>
+            <button class="bet-option" onclick="enviarApuesta('Manchester City - Bayern Münich', 'Gana Man. City')">Gana Man. City</button>
+            <button class="bet-option" onclick="enviarApuesta('Manchester City - Bayern Münich', 'Empate')">Empate</button>
+            <button class="bet-option" onclick="enviarApuesta('Manchester City - Bayern Münich', 'Gana Bayern')">Gana Bayern</button>
         </div>
 
         <!-- Partido 2 -->
         <div class="bet-container">
-            <h3>Partido 2: Paris Saint Germain vs Real Madrid</h3>
+            <h3>Partido 2: Paris Saint Germain - Real Madrid</h3>
             <p>¿Quién ganará el partido?</p>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=2&equipo=C'">Gana Equipo C</button>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=2&empate=true'">Empate</button>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=2&equipo=D'">Gana Equipo D</button>
+            <button class="bet-option" onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Gana PSG')">Gana PSG</button>
+            <button class="bet-option" onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Empate')">Empate</button>
+            <button class="bet-option" onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Gana Real Madrid')">Gana Real Madrid</button>
         </div>
 
         <!-- Partido 3 -->
         <div class="bet-container">
-            <h3>Partido 3: Barcelona vs Bayern Munich</h3>
+            <h3>Partido 3: Atletico de Madrid - Oporto</h3>
             <p>¿Quién ganará el partido?</p>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=3&equipo=E'">Gana Equipo E</button>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=3&empate=true'">Empate</button>
-            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=3&equipo=F'">Gana Equipo F</button>
+            <button class="bet-option" onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Gana Atleti')">Gana Atleti</button>
+            <button class="bet-option" onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Empate')">Empate</button>
+            <button class="bet-option" onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Gana Oporto')">Gana Oporto</button>
         </div>
     </div>
 
     <div class="sidebar">
         <h2>Tus Apuestas</h2>
         <ul class="selected-bets" id="selectedBetsList"></ul>
-        <button id="submitBets" onclick="submitBets()">Hacer Apuesta</button>
     </div>
 
     <script src="/static/js/script.js"></script>
