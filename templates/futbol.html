@@ -43,33 +43,32 @@
     </header>
 
     <div class="apuestas" id="apuestas">
-        <h2>Apuestas para el <span id="match-title">Partido XYZ</span></h2>
+        <h2>Apuestas Champions League</span></h2>
+        <!-- Partido 1 -->
         <div class="bet-container">
-            <!-- Tarjeta de apuesta 1 -->
-            <div class="bet-card">
-                <h2>Resultado del Partido</h2>
-                <p>¿Quién ganará?</p>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Gana Equipo A</button>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Gana por el Equipo B</button>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Empate</button>
-            </div>
+            <h3>Partido 1: Manchester City vs Ajax</h3>
+            <p>¿Quién ganará el partido?</p>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=1&equipo=A'">Gana Equipo A</button>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=1&empate=true'">Empate</button>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=1&equipo=B'">Gana Equipo B</button>
+        </div>
 
-            <!-- Tarjeta de apuesta 2 -->
-            <div class="bet-card">
-                <h2>Número de Goles</h2>
-                <p>¿Cuántos goles se marcarán en el partido?</p>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Menos de 2.5 Goles</button><br><br>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Más de 2.5 Goles</button>
-            </div>
+        <!-- Partido 2 -->
+        <div class="bet-container">
+            <h3>Partido 2: Paris Saint Germain vs Real Madrid</h3>
+            <p>¿Quién ganará el partido?</p>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=2&equipo=C'">Gana Equipo C</button>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=2&empate=true'">Empate</button>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=2&equipo=D'">Gana Equipo D</button>
+        </div>
 
-            <!-- Tarjeta de apuesta 3 -->
-            <div class="bet-card">
-                <h2>Primer Gol</h2>
-                <p>¿Quién marcará el primer gol?</p>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Equipo A</button><br><br>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Equipo B</button><br><br>
-                <button class="bet-option" onclick="window.location.href='/agregar_apuesta'">Nadie (0-0)</button>
-            </div>
+        <!-- Partido 3 -->
+        <div class="bet-container">
+            <h3>Partido 3: Barcelona vs Bayern Munich</h3>
+            <p>¿Quién ganará el partido?</p>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=3&equipo=E'">Gana Equipo E</button>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=3&empate=true'">Empate</button>
+            <button class="bet-option" onclick="window.location.href='/agregar_apuesta?partido=3&equipo=F'">Gana Equipo F</button>
         </div>
     </div>
 

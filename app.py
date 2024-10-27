@@ -6,7 +6,6 @@ import re
 
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-from Crypto.Hash import HMAC, SHA256
 
 import base64
 import logging
@@ -14,6 +13,7 @@ import logging
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'
+
 # Ruta del archivo JSON donde se guardarán los registros
 RUTA_JSON = 'usuarios.json'
 
@@ -21,6 +21,15 @@ RUTA_JSON = 'usuarios.json'
 if not os.path.exists(RUTA_JSON):
     with open(RUTA_JSON, 'w') as f:
         json.dump([], f)
+
+# Ruta del archivo JSON donde se guardarán las apuestas de hipica
+RUTA_JSON_HIPICA = 'apuestas_hipica.json'
+
+# Crear o cargar el archivo JSON para las apuestas de hípica
+if not os.path.exists(RUTA_JSON_HIPICA):
+    with open(RUTA_JSON_HIPICA, 'w') as f:
+        json.dump([], f)
+
 
 
 def leer_usuarios():
@@ -94,11 +103,12 @@ def proteger_contraseña(password):
     return password_token_b64, salt
 
 
+
+
 # Función para cifrar un mensaje con AES-GCM
-def cifrar_aes(texto_plano, clave, nonce=None):
+def cifrar_aes(texto_plano, clave):
     # Genera un nonce (vector de inicialización) aleatorio
-    if nonce is None:
-        nonce = get_random_bytes(12)
+    nonce = get_random_bytes(12)
 
     # Crea un objeto de cifrado AES en modo GCM
     cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
@@ -124,45 +134,7 @@ def descifrar_aes(texto_cifrado, nonce, tag, clave):
 
 
 
-
-
-# Función para generar HMAC usando Crypto
-def generar_hmac(mensaje, clave):
-    # Crear un objeto HMAC con la clave secreta y el algoritmo SHA-256
-    hmac_obj = HMAC.new(clave, digestmod=SHA256)
-    hmac_obj.update(mensaje.encode())
-
-    # Generar el HMAC
-    hmac_digest = hmac_obj.digest()
-
-    # Devolver el HMAC en formato base64 para que sea legible
-    return base64.b64encode(hmac_digest).decode()
-
-# Función para verificar HMAC usando Crypto
-def verificar_hmac(mensaje, clave, hmac_proporcionado):
-    try:
-        # Crear el objeto HMAC nuevamente para verificar
-        hmac_obj = HMAC.new(clave, digestmod=SHA256)
-        hmac_obj.update(mensaje.encode())
-
-        # Decodificar el HMAC proporcionado de base64
-        hmac_proporcionado_bytes = base64.b64decode(hmac_proporcionado)
-
-        # Verificar si el HMAC coincide
-        hmac_obj.verify(hmac_proporcionado_bytes)
-
-        logger.info("HMAC válido. El mensaje no ha sido alterado.")
-        return True
-    except ValueError:
-        logger.error("HMAC no válido. El mensaje ha sido alterado o la clave es incorrecta.")
-        return False
-
-
-'''PRUEBAS DE LOS CIFRADOS'''
-
-
-
-'''
+'''PRUEBAS DE LOS CIFRADOS
 
 # Clave secreta (debe ser compartida entre emisor y receptor)
 clave_secreta = b'secret_key_very_secure'
@@ -176,6 +148,8 @@ logger.info(f"HMAC generado (base64): {hmac_generado}")
 
 # Verificar el HMAC generado (en una simulación de que es recibido correctamente)
 es_valido = verificar_hmac(mensaje, clave_secreta, hmac_generado)
+
+'''
 
 '''
 RUTA_JSON_apuesta = 'apuestas.json'
@@ -254,7 +228,27 @@ def crear_perfil_usuario():
         print("aqui")
         return redirect(url_for('login'))
 
+'''
 
+
+def guardar_apuesta_hipica(apuesta):
+    try:
+        # Leer apuestas previas
+        with open(RUTA_JSON_HIPICA, 'r') as f:
+            apuestas_hipica = json.load(f)
+
+        # Añadir la nueva apuesta
+        apuestas_hipica.append(apuesta)
+
+        # Guardar de vuelta en el archivo JSON
+        with open(RUTA_JSON_HIPICA, 'w') as f:
+            json.dump(apuestas_hipica, f, indent=4)
+
+        logger.info("Apuesta de hípica guardada correctamente en el archivo JSON.")
+        return True
+    except (IOError, TypeError) as e:
+        logger.error(f"Error al guardar la apuesta de hípica en el archivo JSON: {e}")
+        return False
 
 
 @app.route('/perfil')
@@ -304,16 +298,19 @@ def modificar_balance():
                 balance = float(balance)
                 if accion == 'añadir':  # Si la acción es añadir
                     balance += cantidad
-                    logger.info(f"Añadiendo {cantidad}. Nuevo balance: {balance}")
                     balance = str(balance)
-                    balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['aes_key']), base64.b64decode(usuario['nonce']) )
+                    balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['aes_key']))
                     usuario['balance'] = base64.b64encode(balance_cifrado).decode('utf-8')
                     usuario['tag'] = base64.b64encode(tag).decode('utf-8')
-                    logger.info("balance nuevo metido")
+                    usuario['nonce'] = base64.b64encode(nonce).decode('utf-8')
                 elif accion == 'retirar':  # Si la acción es retirar
-                    if usuario['balance'] >= cantidad:  # Verificar que haya suficiente saldo
-                        usuario['balance'] -= cantidad
-                        logger.info(f"Retirando {cantidad}. Nuevo balance: {usuario['balance']}")
+                    if balance >= cantidad:  # Verificar que haya suficiente saldo
+                        balance -= cantidad
+                        balance = str(balance)
+                        balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['aes_key']))
+                        usuario['balance'] = base64.b64encode(balance_cifrado).decode('utf-8')
+                        usuario['tag'] = base64.b64encode(tag).decode('utf-8')
+                        usuario['nonce'] = base64.b64encode(nonce).decode('utf-8')
                     else:
                         return jsonify({'message': 'Fondos insuficientes'}), 400
                 session['usuario']['balance'] = balance
@@ -437,11 +434,12 @@ def register():
 
         # Intentar guardar el nuevo usuario
         if guardar_usuario(nuevo_usuario):
-            return redirect(url_for('index'))  # Redirigir a la página de inicio (index.html)
+            return redirect(url_for('login'))  # Redirigir a la página de login (login.html)
         else:
             return jsonify({'message': 'El nombre de usuario o el correo ya están en uso'}), 409
 
     return render_template('register.html')  # Si es GET, mostrar el formulario
+
 
 # Ruta para mostrar la página de inicio de sesión (login.html)
 @app.route('/login', methods=["GET", "POST"])
@@ -496,7 +494,7 @@ def login():
 @app.route('/futbol')
 def futbol():
     usuario = session.get('usuario')  # Obtener al usuario de la sesión si está autenticado
-    crear_perfil_usuario()
+    #crear_perfil_usuario()
     return render_template('futbol.html', usuario=usuario)
 
 
@@ -524,40 +522,37 @@ def hipica():
 def apostar_hipica():
     if 'usuario' in session:
         horse_number = request.form.get('horseNumber')  # Recoger el valor de horseNumber
-        clave_aes = session.get('clave_aes')
+        if not horse_number:
+            return jsonify({'message': 'Número del caballo no proporcionado'}), 400
+            # Leer usuarios desde el archivo JSON
 
-        if not clave_aes:
-            clave_aes = get_random_bytes(32)  # Generar una nueva clave AES si no existe
-            session['clave_aes'] = clave_aes
+        usuarios = leer_usuarios()
+        usuario_email = session['usuario']['email']  # Identificar al usuario en sesión
 
-        # Cifrar el número del caballo elegido
-        texto_cifrado, nonce, tag = cifrar_aes(horse_number, clave_aes)
+        # Actualizar el balance según la acción y el usuario en sesión
+        for usuario in usuarios:
 
-        # Convertir el texto cifrado, nonce y tag a base64
-        texto_cifrado_base64 = base64.b64encode(texto_cifrado).decode()
-        nonce_base64 = base64.b64encode(nonce).decode()
-        tag_base64 = base64.b64encode(tag).decode()
+            if usuario['email'] == usuario_email:
+                try:
+                    # Cifrar el número del caballo elegido
+                    texto_cifrado, nonce, tag = cifrar_aes(horse_number, base64.b64decode(usuario['aes_key']))
+                except KeyError as e:
+                    # Manejo del error si alguna clave falta
+                    return jsonify({'message': f'Error en la clave de encriptación: {str(e)}'}), 500
+                # Convertir datos a base64 para almacenarlos en JSON
+                apuesta_cifrada = {
+                    'username': session['usuario']['username'],
+                    'horse_number_cifrado': base64.b64encode(texto_cifrado).decode('utf-8'),
+                    'nonce': base64.b64encode(nonce).decode('utf-8'),
+                    'tag': base64.b64encode(tag).decode('utf-8'),
+                }
 
-        # Guardar la apuesta cifrada en la memoria temporal de Flask
-        session['apuesta_hipica'] = {
-            'texto_cifrado': texto_cifrado_base64,
-            'nonce': nonce_base64,
-            'tag': tag_base64
-        }
-
-        # Log para comprobar que se guarda correctamente
-        logger.info("Apuesta realizada por el usuario: %s", session['usuario']['username'])
-        logger.info("Apuesta cifrada (base64): %s", texto_cifrado_base64)
-        logger.info("Nonce (base64): %s", nonce_base64)
-        logger.info("Tag (base64): %s", tag_base64)
-
-        # Descifrar el mensaje
-        texto_descifrado = descifrar_aes(texto_cifrado, nonce, tag, clave_aes)
-
-        if texto_descifrado:
-            logger.info(f"Texto descifrado: {texto_descifrado}")
-
-        return ('', 204)
+                # Guardar apuesta en el archivo JSON
+                if guardar_apuesta_hipica(apuesta_cifrada):
+                    logger.info(f"Apuesta de hípica realizada por el usuario: {session['usuario']['username']}")
+                    return ('', 204)
+                else:
+                    return jsonify({'message': 'Error al registrar la apuesta'}), 500
     else:
         return redirect(url_for('login'))
 
