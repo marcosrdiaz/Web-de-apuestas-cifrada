@@ -106,8 +106,7 @@ def proteger_contraseña(password):
         p=1,
     )
     password_token = kdf.derive(password.encode('utf-8'))
-    password_token_b64 = base64.b64encode(password_token).decode('utf-8')  # Convertir a Base64 para guardarla
-    return password_token_b64, salt
+    return password_token, salt
 
 
 
@@ -185,7 +184,7 @@ def perfil():
                 # Actualizar la sesión con el balance del usuario desde el archivo JSON
                 #Como esta guardado en base 64 lo pasamos de vuelta a bytes
                 session['usuario']['balance'] = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
-                                                              base64.b64decode(usuario['tag']), base64.b64decode(usuario['aes_key']))
+                                                              base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
 
                 logger.info(f"Datos de la sesión que se pasan a la plantilla: {session['usuario']}")
 
@@ -213,12 +212,12 @@ def modificar_balance():
             if usuario['email'] == usuario_email:
                 logger.info("aqui pasa")
                 balance = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
-                                        base64.b64decode(usuario['tag']), base64.b64decode(usuario['aes_key']))
+                                        base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
                 balance = float(balance)
                 if accion == 'añadir':  # Si la acción es añadir
                     balance += cantidad
                     balance = str(balance)
-                    balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['aes_key']))
+                    balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['password']))
                     usuario['balance'] = base64.b64encode(balance_cifrado).decode('utf-8')
                     usuario['tag'] = base64.b64encode(tag).decode('utf-8')
                     usuario['nonce'] = base64.b64encode(nonce).decode('utf-8')
@@ -226,7 +225,7 @@ def modificar_balance():
                     if balance >= cantidad:  # Verificar que haya suficiente saldo
                         balance -= cantidad
                         balance = str(balance)
-                        balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['aes_key']))
+                        balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['password']))
                         usuario['balance'] = base64.b64encode(balance_cifrado).decode('utf-8')
                         usuario['tag'] = base64.b64encode(tag).decode('utf-8')
                         usuario['nonce'] = base64.b64encode(nonce).decode('utf-8')
@@ -330,25 +329,22 @@ def register():
         if not validar_contraseña(password):
             return jsonify({'message': 'La contraseña debe tener al menos 8 caracteres'}), 400
 
-        password_token_b64, salt = proteger_contraseña(password)
-
-        # Generar claves únicas para este usuario
-        aes_key = get_random_bytes(32)  # Clave única de cifrado AES de 256 bits
+        password_token, salt = proteger_contraseña(password)
 
         balance_inicial = "0"
 
-        # Cifrar el balance usando AES-GCM con la clave única
-        balance_cifrado, nonce, tag = cifrar_aes(balance_inicial, aes_key)
+        # Cifrar el balance usando AES-GCM con la clave única (estamos usando la contraseña como clave aes)
+        balance_cifrado, nonce, tag = cifrar_aes(balance_inicial, password_token)
 
         nuevo_usuario = {
             'username': username,
             'email': email,
-            'password': password_token_b64, # Guardar la contraseña cifrada
+            'password': base64.b64encode(password_token).decode('utf-8'), # Guardar la contraseña cifrada y pasada a base 64
             'salt': base64.b64encode(salt).decode('utf-8'),
             'balance': base64.b64encode(balance_cifrado).decode('utf-8'),
             'nonce': base64.b64encode(nonce).decode('utf-8'),
             'tag': base64.b64encode(tag).decode('utf-8'),
-            'aes_key': base64.b64encode(aes_key).decode('utf-8')  # Guardar la clave de cifrado cifrada
+
         }
 
         # Intentar guardar el nuevo usuario
@@ -437,7 +433,7 @@ def guardar_apuesta():
             texto_apuesta = f"Partido: {partido} - Apuesta: {apuesta}"
 
             # Cifrar la apuesta
-            apuesta_cifrada, nonce_apuesta, tag_apuesta = cifrar_aes(texto_apuesta, base64.b64decode(usuario['aes_key']))
+            apuesta_cifrada, nonce_apuesta, tag_apuesta = cifrar_aes(texto_apuesta, base64.b64decode(usuario['password']))
 
             # Guardar la apuesta cifrada en la sesión o base de datos
             if "apuestas" not in session:
@@ -489,7 +485,7 @@ def apostar_hipica():
             if usuario['email'] == usuario_email:
                 try:
                     # Cifrar el número del caballo elegido
-                    texto_cifrado, nonce, tag = cifrar_aes(horse_number, base64.b64decode(usuario['aes_key']))
+                    texto_cifrado, nonce, tag = cifrar_aes(horse_number, base64.b64decode(usuario['password']))
                 except KeyError as e:
                     # Manejo del error si alguna clave falta
                     return jsonify({'message': f'Error en la clave de encriptación: {str(e)}'}), 500

@@ -8,5 +8,14 @@
         "nonce": "0+nVlbyzbTihFuSL",
         "tag": "7YE4AtIwXIwBtLf4Nc6M9w==",
         "aes_key": "JAwYC2wn33mqf2U+xUi9xxbtRHMoSQufq3dHIRdzRoY="
+    },
+    {
+        "username": "a",
+        "email": "a@g.com",
+        "password": "0b8uxb/o32/ZACNhXcWO4IEHFFPsjbHvbTTxqDP36ho=",
+        "salt": "58Z7ZNGvUqL92MDELaGp8Q==",
+        "balance": "WA==",
+        "nonce": "xjf3yj79flumcPr5",
+        "tag": "ENWgA1ymyoD/JGkVZHeqQQ=="
     }
 ]
