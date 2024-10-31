@@ -10,9 +10,16 @@ from Crypto.Random import get_random_bytes
 import base64
 import logging
 
-
+# Crear una instancia de la aplicación Flask
 app = Flask(__name__)
-app.secret_key = 'tu_clave_secreta_aqui'
+# Definir una clave secreta para la aplicación, utilizada para gestionar las sesiones y proteger los datos
+app.secret_key = 'albondigas_yaya'
+
+# Configuración del log para mostrar mensajes
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger()
+
+# Creamos las rutas de los archivos donde vamos a guardar información
 
 # Ruta del archivo JSON donde se guardarán los registros
 RUTA_JSON = 'usuarios.json'
@@ -44,9 +51,8 @@ def leer_usuarios():
         with open(RUTA_JSON, 'r') as f:
             return json.load(f)
     except (IOError, json.JSONDecodeError) as e:
-        print(f"Error al leer el archivo JSON: {e}")
+        logger.info(f"Error al leer el archivo JSON: {e}")
         return []
-
 
 # Función para guardar un nuevo usuario en el archivo JSON
 def guardar_usuario(nuevo_usuario):
@@ -71,7 +77,7 @@ def validar_email(email):
     return re.match(email_regex, email) is not None
 
 # Función para validar la contraseña (mínimo 8 caracteres, una mayuscula y un caracter especial)
-def validar_contraseña(password):
+def validar_password(password):
     # Verificar longitud
     if len(password) < 8:
         return False
@@ -87,17 +93,10 @@ def validar_contraseña(password):
     # Si pasa todas las condiciones, la contraseña es válida
     return True
 
-
-# Configuración del log para mostrar mensajes
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
-logger = logging.getLogger()
-
-
-
-def proteger_contraseña(password):
-
+def proteger_password(password):
+    # creamos un salt aleatorio
     salt = os.urandom(16)
-    # derive
+    # creamos un kdf para derivar la contraseña
     kdf = Scrypt(
         salt=salt,
         length=32,
@@ -108,9 +107,6 @@ def proteger_contraseña(password):
     password_token = kdf.derive(password.encode('utf-8'))
     return password_token, salt
 
-
-
-
 # Función para cifrar un mensaje con AES-GCM
 def cifrar_aes(texto_plano, clave):
     # Genera un nonce (vector de inicialización) aleatorio
@@ -120,25 +116,24 @@ def cifrar_aes(texto_plano, clave):
     cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
 
     texto_cifrado, tag = cipher.encrypt_and_digest(texto_plano.encode())
-    logger.info(f"Cif texto_cifrado: {texto_cifrado}, nonce: {nonce}, tag: {tag}")
+    logger.info(f"Cifrando con AES-GCM. Tamaño de clave {len(clave) * 8} bits ({len(clave)} bytes). Texto_cifrado: "
+                f"{texto_cifrado}, nonce: {nonce}, tag: {tag}")
     return texto_cifrado, nonce, tag
 
 # Función para descifrar un mensaje cifrado con AES-GCM
 def descifrar_aes(texto_cifrado, nonce, tag, clave):
     # Crea un objeto de descifrado AES en modo GCM con el mismo nonce
-    logger.info(f"Desc texto_cifrado: {texto_cifrado}, nonce: {nonce}, tag: {tag}")
     cipher = AES.new(clave, AES.MODE_GCM, nonce=nonce)
 
     # Descifra el texto cifrado y verifica la integridad con el tag
     try:
         texto_descifrado = cipher.decrypt_and_verify(texto_cifrado, tag)
-        logger.info("descifrado")
+        logger.info(f"Autenticación exitosa con AES-GCM. Tamaño de clave: {len(clave) * 8} bits ({len(clave)} bytes), "
+                    f"Algoritmo: AES-GCM, Texto descifrado: {texto_descifrado}")
         return texto_descifrado.decode()
     except ValueError:
         logger.error("Error: el mensaje ha sido alterado o la clave es incorrecta.")
         return None
-
-
 
 def guardar_apuesta_hipica(apuesta):
     try:
@@ -169,6 +164,110 @@ def guardar_apuesta_hipica(apuesta):
         return True
 
 
+# Ruta para mostrar la página principal (index.html)
+@app.route('/')
+def index():
+    usuario = session.get("usuario")
+    return render_template('index.html', usuario=usuario)
+
+# Ruta para mostrar la página de registro (register.html) y manejar el registro (POST)
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        # Obtener los datos del formulario
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Validación de campos obligatorios
+        if not username or not email or not password:
+            return jsonify({'message': 'Faltan campos obligatorios'}), 400
+
+        # Validación del formato del correo electrónico
+        if not validar_email(email):
+            return jsonify({'message': 'El formato del correo electrónico es inválido'}), 400
+
+        # Validación de la longitud de la contraseña
+        if not validar_password(password):
+            return jsonify({'message': 'La contraseña debe tener al menos 8 caracteres'}), 400
+
+        # Protegemos la contraseña
+        password_token, salt = proteger_password(password)
+
+        balance_inicial = "0"
+
+        # Cifrar el balance usando AES-GCM con la clave única (estamos usando la contraseña como clave aes)
+        balance_cifrado, nonce, tag = cifrar_aes(balance_inicial, password_token)
+
+        # Guardamos en base 64 para mayor seguridad
+        nuevo_usuario = {
+            'username': username,
+            'email': email,
+            'password': base64.b64encode(password_token).decode('utf-8'),
+            'salt': base64.b64encode(salt).decode('utf-8'),
+            'balance': base64.b64encode(balance_cifrado).decode('utf-8'),
+            'nonce': base64.b64encode(nonce).decode('utf-8'),
+            'tag': base64.b64encode(tag).decode('utf-8'),
+        }
+
+        # Intentar guardar el nuevo usuario
+        if guardar_usuario(nuevo_usuario):
+            return redirect(url_for('login'))  # Redirigir a la página de login (login.html)
+        else:
+            return jsonify({'message': 'El nombre de usuario o el correo ya están en uso'}), 409
+
+    return render_template('register.html')  # Si es GET, mostrar el formulario
+
+# Ruta para mostrar la página de inicio de sesión (login.html)
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not email or not password:
+            return jsonify({'message': 'Faltan campos obligatorios'}), 400
+
+        usuarios = leer_usuarios()
+        usuario = None
+
+        # Buscar al usuario en la lista utilizando un bucle for
+        for usuario in usuarios:
+            if usuario['email'] == email:
+                usuario = usuario
+                break
+
+        if usuario:
+            # Decodificar el salt almacenado desde Base64
+            salt = base64.b64decode(usuario['salt'])
+
+            # Derivar la clave usando la contraseña ingresada y el salt almacenado
+            kdf = Scrypt(
+                salt=salt,
+                length=32,
+                n=2 ** 14,
+                r=8,
+                p=1
+            )
+            password_token_intentada = kdf.derive(password.encode('utf-8'))
+
+            # Convertir la clave derivada a Base64 para comparación
+            password_token_b64 = base64.b64encode(password_token_intentada).decode('utf-8')
+
+            # Comparar las claves derivadas
+            if password_token_b64 == usuario['password']:
+                session['usuario'] = {
+                    'username': usuario['username'],
+                    'email': usuario['email'],
+                    'balance': usuario['balance']  # Incluir el balance
+                }
+                return redirect(url_for('index'))
+            else:
+                return jsonify({'message': 'Credenciales incorrectas'}), 401
+        else:
+            return jsonify({'message': 'Credenciales incorrectas'}), 401
+
+    return render_template('login.html')
 @app.route('/perfil')
 def perfil():
     # Verificar si el usuario está en la sesión
@@ -182,18 +281,17 @@ def perfil():
             if usuario['email'] == usuario_email:
 
                 # Actualizar la sesión con el balance del usuario desde el archivo JSON
-                #Como esta guardado en base 64 lo pasamos de vuelta a bytes
+                # Como esta guardado en base 64 lo pasamos de vuelta a bytes
                 session['usuario']['balance'] = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
                                                               base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
 
-                logger.info(f"Datos de la sesión que se pasan a la plantilla: {session['usuario']}")
+                logger.info(f"Datos de la sesión que se pasan a la plantilla (descifrado solo en la sesion temporal porque imprime el balance en el perfil): {session['usuario']}")
 
                 # Renderizar la plantilla con los datos del usuario
                 return render_template('perfil.html', usuario=session['usuario'])  # Pasar el usuario a la plantilla
 
     # Si no hay usuario en la sesión, redirigir a la página de inicio de sesión
     return redirect(url_for('login'))
-
 
 # Ruta para modificar el balance
 @app.route('/modificar_balance', methods=["POST"])
@@ -210,7 +308,6 @@ def modificar_balance():
         for usuario in usuarios:
 
             if usuario['email'] == usuario_email:
-                logger.info("aqui pasa")
                 balance = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
                                         base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
                 balance = float(balance)
@@ -243,7 +340,6 @@ def modificar_balance():
         return redirect(url_for('perfil'))
 
     return redirect(url_for('login'))
-
 
 # Ruta para actualizar los datos del usuario
 @app.route('/actualizar_datos', methods=["POST"])
@@ -291,126 +387,11 @@ def actualizar_datos():
     logger.warning("Intento de actualización de datos sin sesión de usuario.")
     return redirect(url_for('login'))
 
-
-
-
-
-
-
-
-
-
-
-# Ruta para mostrar la página principal (index.html)
-@app.route('/')
-def index():
-
-    usuario = session.get("usuario")
-    return render_template('index.html', usuario=usuario)
-
-# Ruta para mostrar la página de registro (register.html) y manejar el registro (POST)
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        # Obtener los datos del formulario
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        # Validación de campos obligatorios
-        if not username or not email or not password:
-            return jsonify({'message': 'Faltan campos obligatorios'}), 400
-
-        # Validación del formato del correo electrónico
-        if not validar_email(email):
-            return jsonify({'message': 'El formato del correo electrónico es inválido'}), 400
-
-        # Validación de la longitud de la contraseña
-        if not validar_contraseña(password):
-            return jsonify({'message': 'La contraseña debe tener al menos 8 caracteres'}), 400
-
-        password_token, salt = proteger_contraseña(password)
-
-        balance_inicial = "0"
-
-        # Cifrar el balance usando AES-GCM con la clave única (estamos usando la contraseña como clave aes)
-        balance_cifrado, nonce, tag = cifrar_aes(balance_inicial, password_token)
-
-        nuevo_usuario = {
-            'username': username,
-            'email': email,
-            'password': base64.b64encode(password_token).decode('utf-8'), # Guardar la contraseña cifrada y pasada a base 64
-            'salt': base64.b64encode(salt).decode('utf-8'),
-            'balance': base64.b64encode(balance_cifrado).decode('utf-8'),
-            'nonce': base64.b64encode(nonce).decode('utf-8'),
-            'tag': base64.b64encode(tag).decode('utf-8'),
-
-        }
-
-        # Intentar guardar el nuevo usuario
-        if guardar_usuario(nuevo_usuario):
-            return redirect(url_for('login'))  # Redirigir a la página de login (login.html)
-        else:
-            return jsonify({'message': 'El nombre de usuario o el correo ya están en uso'}), 409
-
-    return render_template('register.html')  # Si es GET, mostrar el formulario
-
-
-# Ruta para mostrar la página de inicio de sesión (login.html)
-@app.route('/login', methods=["GET", "POST"])
-def login():
-
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        if not email or not password:
-            return jsonify({'message': 'Faltan campos obligatorios'}), 400
-
-        usuarios = leer_usuarios()
-        usuario = next((u for u in usuarios if u['email'] == email), None)
-
-        if usuario:
-            # Decodificar el salt almacenado desde Base64
-            salt = base64.b64decode(usuario['salt'])
-
-            # Derivar la clave usando la contraseña ingresada y el salt almacenado
-            kdf = Scrypt(
-                salt=salt,
-                length=32,
-                n=2 ** 14,
-                r=8,
-                p=1
-            )
-            password_token_intentada = kdf.derive(password.encode('utf-8'))
-
-            # Convertir la clave derivada a Base64 para comparación
-            password_token_b64 = base64.b64encode(password_token_intentada).decode('utf-8')
-
-            # Comparar las claves derivadas
-            if password_token_b64 == usuario['password']:
-                session['usuario'] = {
-                    'username': usuario['username'],
-                    'email': usuario['email'],
-                    'balance': usuario['balance']  # Incluir el balance
-                }
-                return redirect(url_for('index'))
-            else:
-                return jsonify({'message': 'Credenciales incorrectas'}), 401
-        else:
-            return jsonify({'message': 'Credenciales incorrectas'}), 401
-
-    return render_template('login.html')
-
-
-
-
 @app.route('/futbol')
 def futbol():
     usuario = session.get('usuario')  # Obtener al usuario de la sesión si está autenticado
     #crear_perfil_usuario()
     return render_template('futbol.html', usuario=usuario)
-
 
 # Ruta para guardar una apuesta cifrada
 @app.route("/guardar_apuesta", methods=["POST"])
@@ -506,7 +487,6 @@ def apostar_hipica():
     else:
         return redirect(url_for('login'))
 
-
 @app.route('/baloncesto')
 def baloncesto():
     usuario = session.get('usuario')
@@ -517,18 +497,10 @@ def tenis():
     usuario = session.get('usuario')
     return render_template('tenis.html', usuario=usuario)
 
-
-
-
 @app.route('/logout')
 def logout():
     session.pop('usuario', None)  # Cerrar sesión
     return redirect(url_for('index'))
 
-
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
-
