@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <title>Ejemplo de Página HTML</title>
+    <title>Apuestas de Tenis</title>
 </head>
 <body>
     <!-- Header -->
@@ -41,6 +41,42 @@
             </div>
         </div>
     </header>
-    <img id='continuara' src="{{ url_for('static', filename='images/to_be_continued.png') }}">
+    <div class="contenido">
+        <div class="apuestas" id="apuestas">
+            <h2>Apuestas ATP</h2>
+            <!-- Partido 1 -->
+            <div class="bet-container">
+                <h3>Partido 1: Novak Djokovic - Carlos Alcaraz</h3>
+                <p>¿Quién ganará el partido?</p>
+                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Gana Djokovic')">Gana Djokovic</button>
+                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Empate')">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Gana Alcaraz')">Gana Alcaraz</button>
+            </div>
+
+            <!-- Partido 2 -->
+            <div class="bet-container">
+                <h3>Partido 2: Daniil Medvedev - Stefanos Tsitsipas</h3>
+                <p>¿Quién ganará el partido?</p>
+                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Gana Medvedev')">Gana Medvedev</button>
+                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Empate')">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Gana Tsitsipas')">Gana Tsitsipas</button>
+            </div>
+
+            <!-- Partido 3 -->
+            <div class="bet-container">
+                <h3>Partido 3: Alexander Zverev - Andrey Rublev</h3>
+                <p>¿Quién ganará el partido?</p>
+                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Gana Zverev')">Gana Zverev</button>
+                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Empate')">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Gana Rublev')">Gana Rublev</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>Tus Apuestas</h2>
+            <ul class="selected-bets" id="selectedBetsList"></ul>
+        </div>
+    </div>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

@@ -108,10 +108,10 @@ function enviarApuesta(partido, apuesta) {
     .catch(error => console.error("Error al enviar la apuesta:", error));
 }
 
-// Función para mostrar la apuesta en la sidebar sin recargar la página
+// Function to display the bet in the sidebar without reloading the page
 function mostrarApuestaEnSidebar(partido, apuesta) {
     const listaApuestas = document.getElementById("selectedBetsList");
     const apuestaItem = document.createElement("li");
-    apuestaItem.textContent = `Partido: ${partido} - Apuesta: ${apuesta}`;
+    apuestaItem.innerHTML = `${partido}<br>Apuesta: ${apuesta}`;
     listaApuestas.appendChild(apuestaItem);
 }

@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejemplo de Página HTML</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Apuestas de Baloncesto</title>
 </head>
 <body>
     <!-- Header -->
@@ -41,6 +41,42 @@
             </div>
         </div>
     </header>
-    <img id='continuara' src="{{ url_for('static', filename='images/to_be_continued.png') }}">
+    <div class="contenido">
+        <div class="apuestas" id="apuestas">
+            <h2>Apuestas NBA</h2>
+            <!-- Partido 1 -->
+            <div class="bet-container">
+                <h3>Partido 1: Los Angeles Lakers - Golden State Warriors</h3>
+                <p>¿Quién ganará el partido?</p>
+                <button class="bet-option" onclick="enviarApuesta('Los Angeles Lakers - Golden State Warriors', 'Gana Lakers')">Gana Lakers</button>
+                <button class="bet-option" onclick="enviarApuesta('Los Angeles Lakers - Golden State Warriors', 'Empate')">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Los Angeles Lakers - Golden State Warriors', 'Gana Warriors')">Gana Warriors</button>
+            </div>
+
+            <!-- Partido 2 -->
+            <div class="bet-container">
+                <h3>Partido 2: Brooklyn Nets - Miami Heat</h3>
+                <p>¿Quién ganará el partido?</p>
+                <button class="bet-option" onclick="enviarApuesta('Brooklyn Nets - Miami Heat', 'Gana Nets')">Gana Nets</button>
+                <button class="bet-option" onclick="enviarApuesta('Brooklyn Nets - Miami Heat', 'Empate')">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Brooklyn Nets - Miami Heat', 'Gana Heat')">Gana Heat</button>
+            </div>
+
+            <!-- Partido 3 -->
+            <div class="bet-container">
+                <h3>Partido 3: Chicago Bulls - Boston Celtics</h3>
+                <p>¿Quién ganará el partido?</p>
+                <button class="bet-option" onclick="enviarApuesta('Chicago Bulls - Boston Celtics', 'Gana Bulls')">Gana Bulls</button>
+                <button class="bet-option" onclick="enviarApuesta('Chicago Bulls - Boston Celtics', 'Empate')">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Chicago Bulls - Boston Celtics', 'Gana Celtics')">Gana Celtics</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>Tus Apuestas</h2>
+            <ul class="selected-bets" id="selectedBetsList"></ul>
+        </div>
+    </div>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

@@ -1,0 +1,20 @@
+[
+    {
+        "email": "r@g.com",
+        "horse_number_cifrado": "2w==",
+        "nonce": "uHAV8ToI18I9ZeSD",
+        "tag": "GLCU2ka7Ldz/DwBfBy2KNQ=="
+    },
+    {
+        "email": "r@g.com",
+        "horse_number_cifrado": "+A==",
+        "nonce": "iTMuA7dyV1jOciv6",
+        "tag": "bVeOks8KAL7EniFKbIDcQg=="
+    },
+    {
+        "email": "r@g.com",
+        "horse_number_cifrado": "DQ==",
+        "nonce": "mll8O3CQLeeu4dau",
+        "tag": "OMSkvIELE5JE30Jtt+mb6A=="
+    }
+]

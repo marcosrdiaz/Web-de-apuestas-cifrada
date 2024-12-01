@@ -216,10 +216,12 @@ h1, h2 {
 
 /* Estilo para el panel lateral */
 .sidebar {
+    flex: 1;
     background-color: #333; /* Fondo oscuro para el panel lateral */
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-left: 1px solid
 }
 
 .selected-bets {
@@ -234,6 +236,32 @@ h1, h2 {
     border-radius: 5px;
     color: #fff; /* Texto blanco */
 }
+
+.contenido {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.contenido .apuestas {
+    flex: 3;
+    padding: 20px;
+}
+
+.contenido .sidebar {
+    flex: 0.20;
+    padding: 20px;
+    background-color: grey; /* Color de fondo opcional */
+    border-left: 1px solid #ccc; /* Borde opcional */
+    text-align: center;
+}
+
+
+
+
+
+
+
 
 /* Estilos para enlaces */
 a {
@@ -424,6 +452,7 @@ canvas {
 
 /* Bets Section Styles */
 .apuestas {
+    flex: 3;
     width: 90%;
     max-width: 800px;
     margin: auto;
