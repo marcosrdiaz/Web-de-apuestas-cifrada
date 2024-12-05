@@ -282,13 +282,16 @@ def perfil():
 
                 # Actualizar la sesión con el balance del usuario desde el archivo JSON
                 # Como esta guardado en base 64 lo pasamos de vuelta a bytes
-                session['usuario']['balance'] = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
-                                                              base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
+                session['usuario']['balance'] = descifrar_aes(base64.b64decode(usuario['balance']),
+                                                              base64.b64decode(usuario['nonce']),
+                                                              base64.b64decode(usuario['tag']),
+                                                              base64.b64decode(usuario['password']))
 
-                logger.info(f"Datos de la sesión que se pasan a la plantilla (descifrado solo en la sesion temporal porque imprime el balance en el perfil): {session['usuario']}")
+                logger.info(f"Datos de la sesión que se pasan a la plantilla (descifrado solo en la sesion temporal "
+                            f"porque imprime el balance en el perfil): {session['usuario']}")
 
                 # Renderizar la plantilla con los datos del usuario
-                return render_template('perfil.html', usuario=session['usuario'])  # Pasar el usuario a la plantilla
+                return render_template('perfil.html', usuario=session['usuario'])
 
     # Si no hay usuario en la sesión, redirigir a la página de inicio de sesión
     return redirect(url_for('login'))
@@ -396,22 +399,27 @@ def futbol():
 # Ruta para guardar una apuesta cifrada
 @app.route("/guardar_apuesta", methods=["POST"])
 def guardar_apuesta():
+    if 'usuario' not in session:
+        return jsonify({"error": "Debes iniciar sesión para hacer una apuesta."}), 401
+
     data = request.get_json()
+
     partido = data.get("partido")
     apuesta = data.get("apuesta")
+    valor_apuesta = data.get("valor_apuesta")  # Obtener el valor de la apuesta
+    print(partido, apuesta, valor_apuesta)
+
+    if not partido or not apuesta or not valor_apuesta:
+        return jsonify({"success": False, "error": "Datos incompletos"}), 400
 
     # Leer usuarios desde el archivo JSON
     usuarios = leer_usuarios()
     usuario_email = session['usuario']['email']  # Identificar al usuario en sesión
 
-    # Actualizar el balance según la acción y el usuario en sesión
     for usuario in usuarios:
         if usuario['email'] == usuario_email:
-            if not partido or not apuesta:
-                return jsonify({"success": False, "error": "Datos incompletos"})
-
             # Preparar el texto de la apuesta para cifrarlo
-            texto_apuesta = f"Partido: {partido} - Apuesta: {apuesta}"
+            texto_apuesta = f"Partido: {partido} - Apuesta: {apuesta} - Valor: {valor_apuesta}"
 
             # Cifrar la apuesta
             apuesta_cifrada, nonce_apuesta, tag_apuesta = cifrar_aes(texto_apuesta, base64.b64decode(usuario['password']))
@@ -426,20 +434,19 @@ def guardar_apuesta():
                 with open(RUTA_JSON_FUTBOL, "r") as file:
                     apuestas_data = json.load(file)
             except (FileNotFoundError, json.JSONDecodeError):
-                # Si el archivo no existe o está vacío, inicializar apuestas_data como una lista vacía
                 apuestas_data = []
 
             # Agregar la nueva apuesta al archivo
             nueva_apuesta = {
                 "email": usuario_email,
-                "apuesta": base64.b64encode(apuesta_cifrada).decode('utf-8'),  # Convertir a texto para JSON
+                "apuesta": base64.b64encode(apuesta_cifrada).decode('utf-8'),
                 "nonce": base64.b64encode(nonce_apuesta).decode('utf-8'),
                 "tag": base64.b64encode(tag_apuesta).decode('utf-8')
             }
             apuestas_data.append(nueva_apuesta)
 
             # Guardar las apuestas actualizadas en el archivo JSON
-            with open("apuestas_futbol.json", "w") as file:
+            with open(RUTA_JSON_FUTBOL, "w") as file:
                 json.dump(apuestas_data, file, indent=4)
 
             return jsonify({"success": True, "message": "Apuesta guardada exitosamente"})

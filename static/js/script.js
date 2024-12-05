@@ -89,18 +89,18 @@ document.getElementById('logout-btn').addEventListener('click', function(event) 
     logout();
 });
 
-function enviarApuesta(partido, apuesta) {
+function enviarApuesta(partido, apuesta, valorApuesta) {
     fetch("/guardar_apuesta", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ partido, apuesta })
+        body: JSON.stringify({ partido, apuesta, valor_apuesta: valorApuesta })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            mostrarApuestaEnSidebar(partido, apuesta); // Muestra en la sidebar
+            mostrarApuestaEnSidebar(partido, apuesta, valorApuesta); // Muestra en la sidebar
         } else {
             alert("Hubo un problema al guardar la apuesta.");
         }
@@ -109,9 +109,9 @@ function enviarApuesta(partido, apuesta) {
 }
 
 // Function to display the bet in the sidebar without reloading the page
-function mostrarApuestaEnSidebar(partido, apuesta) {
+function mostrarApuestaEnSidebar(partido, apuesta, valorApuesta) {
     const listaApuestas = document.getElementById("selectedBetsList");
     const apuestaItem = document.createElement("li");
-    apuestaItem.innerHTML = `${partido}<br>Apuesta: ${apuesta}`;
+    apuestaItem.innerHTML = `${partido}<br>Apuesta: ${apuesta}<br>Valor: ${valorApuesta}€`;
     listaApuestas.appendChild(apuestaItem);
 }

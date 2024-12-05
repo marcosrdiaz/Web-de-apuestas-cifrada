@@ -48,28 +48,32 @@
                 <h3>Partido 1: Manchester City - Bayern Münich</h3>
                 <p>¿Quién ganará el partido?</p>
                 <label for="betAmount1">Cantidad a apostar:</label>
-                <input type="number" id="betAmount1" name="betAmount" required>
-                <button class="bet-option" onclick="enviarApuesta('Manchester City - Bayern Münich', 'Gana Man. City')">Gana Man. City</button>
-                <button class="bet-option" onclick="enviarApuesta('Manchester City - Bayern Münich', 'Empate')">Empate</button>
-                <button class="bet-option" onclick="enviarApuesta('Manchester City - Bayern Münich', 'Gana Bayern')">Gana Bayern</button>
+                <input type="number" id="betAmount1" required>
+                <button onclick="enviarApuesta('Manchester City - Bayern Münich', 'Gana Man. City', document.getElementById('betAmount1').value)">Gana Man. City</button>
+                <button onclick="enviarApuesta('Manchester City - Bayern Münich', 'Empate', document.getElementById('betAmount1').value)">Empate</button>
+                <button onclick="enviarApuesta('Manchester City - Bayern Münich', 'Gana Bayern', document.getElementById('betAmount1').value)">Gana Bayern</button>
             </div>
 
             <!-- Partido 2 -->
             <div class="bet-container">
                 <h3>Partido 2: Paris Saint Germain - Real Madrid</h3>
                 <p>¿Quién ganará el partido?</p>
-                <button class="bet-option" onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Gana PSG')">Gana PSG</button>
-                <button class="bet-option" onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Empate')">Empate</button>
-                <button class="bet-option" onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Gana Real Madrid')">Gana Real Madrid</button>
+                <label for="betAmount2">Cantidad a apostar:</label>
+                <input type="number" id="betAmount2" required>
+                <button onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Gana PSG', document.getElementById('betAmount2').value)">Gana PSG</button>
+                <button onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Empate', document.getElementById('betAmount2').value)">Empate</button>
+                <button onclick="enviarApuesta('Paris Saint Germain - Real Madrid', 'Gana Real Madrid', document.getElementById('betAmount2').value)">Gana Real Madrid</button>
             </div>
 
             <!-- Partido 3 -->
             <div class="bet-container">
                 <h3>Partido 3: Atletico de Madrid - Oporto</h3>
                 <p>¿Quién ganará el partido?</p>
-                <button class="bet-option" onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Gana Atleti')">Gana Atleti</button>
-                <button class="bet-option" onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Empate')">Empate</button>
-                <button class="bet-option" onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Gana Oporto')">Gana Oporto</button>
+                <label for="betAmount3">Cantidad a apostar:</label>
+                <input type="number" id="betAmount3" required>
+                <button onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Gana Atleti', document.getElementById('betAmount3').value)">Gana Atleti</button>
+                <button onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Empate', document.getElementById('betAmount3').value)">Empate</button>
+                <button onclick="enviarApuesta('Atletico de Madrid - Oporto', 'Gana Oporto', document.getElementById('betAmount3').value)">Gana Oporto</button>
             </div>
         </div>
 
