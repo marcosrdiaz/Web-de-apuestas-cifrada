@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import json
 import os
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization, hashes
 import re
 
 from Crypto.Cipher import AES
@@ -164,6 +166,78 @@ def guardar_apuesta_hipica(apuesta):
         return True
 
 
+def generar_claves():
+    # Generar un par de claves RSA
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+    public_key = private_key.public_key()
+
+    # Serializar las claves en formato PEM
+    private_key_bytes = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.BestAvailableEncryption(b'pollo123')
+   )
+    public_key_bytes = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    return public_key_bytes, private_key_bytes
+
+def guardar_clave_privada(email, private_key):
+    if not os.path.exists(f'private_keys_{email}.pem'):
+        with open(f'private_keys_{email}.pem', 'w') as f:
+            json.dump([], f)
+    try:
+        with open(f'private_keys_{email}.pem', 'wb') as f:
+            f.write(private_key)
+        logger.info(f"Clave privada guardada correctamente para el usuario: {email}")
+        return True
+    except (IOError, TypeError) as e:
+        logger.error(f"Error al guardar la clave privada: {e}")
+        return False
+
+def sign_data(data):
+   #Deserializar la clave privada
+   with open("private_key.pem", "rb") as key_file:
+       private_key = serialization.load_pem_private_key(
+           key_file.read(),
+           password=b'pollo123'
+       )
+    # Firmar los datos con la clave privada
+   signature = private_key.sign(
+       data.encode('utf-8'),
+       padding.PSS(
+           mgf=padding.MGF1(hashes.SHA256()),
+           salt_length=padding.PSS.MAX_LENGTH
+       ),
+       hashes.SHA256()
+   )
+   return signature
+
+def verify_signature(data, signature, public_key):
+    # Deserializar la clave pública
+    public_key = serialization.load_pem_public_key(
+        public_key,
+    )
+    # Verificar la firma con la clave pública
+    try:
+        public_key.verify(
+            signature,
+            data.encode('utf-8'),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        return True
+    except:
+        return False
+
 # Ruta para mostrar la página principal (index.html)
 @app.route('/')
 def index():
@@ -199,6 +273,9 @@ def register():
         # Cifrar el balance usando AES-GCM con la clave única (estamos usando la contraseña como clave aes)
         balance_cifrado, nonce, tag = cifrar_aes(balance_inicial, password_token)
 
+        #Generamos la clave publica y privada del usuario
+        public_key_bytes, private_key_bytes = generar_claves()
+
         # Guardamos en base 64 para mayor seguridad
         nuevo_usuario = {
             'username': username,
@@ -208,13 +285,24 @@ def register():
             'balance': base64.b64encode(balance_cifrado).decode('utf-8'),
             'nonce': base64.b64encode(nonce).decode('utf-8'),
             'tag': base64.b64encode(tag).decode('utf-8'),
+            'public_key': public_key_bytes.decode('utf-8'),
         }
 
-        # Intentar guardar el nuevo usuario
+        nueva_clave = {
+            'email': email,
+            'private_key': private_key_bytes.decode('utf-8'),
+        }
+
+        # Guardar el nuevo usuario en el archivo JSON
         if guardar_usuario(nuevo_usuario):
-            return redirect(url_for('login'))  # Redirigir a la página de login (login.html)
+            # Guardar clave privada en un archivo
+            if guardar_clave_privada(email, private_key_bytes):
+                logger.info(f"Nuevo usuario registrado: {username}, {email}")
+                return redirect(url_for('login'))
+            else:
+                return jsonify({'message': 'Error al guardar la clave privada'}), 500
         else:
-            return jsonify({'message': 'El nombre de usuario o el correo ya están en uso'}), 409
+            return jsonify({'message': 'El nombre de usuario o correo electrónico ya existen'}), 400
 
     return render_template('register.html')  # Si es GET, mostrar el formulario
 
