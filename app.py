@@ -4,6 +4,9 @@ import os
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+import datetime
 import re
 
 from Crypto.Cipher import AES
@@ -188,11 +191,11 @@ def generar_claves():
     return public_key_bytes, private_key_bytes
 
 def guardar_clave_privada(email, private_key):
-    if not os.path.exists(f'private_keys_{email}.pem'):
-        with open(f'private_keys_{email}.pem', 'w') as f:
+    if not os.path.exists(f'claves/private_key_{email}.pem'):
+        with open(f'claves/private_key_{email}.pem', 'w') as f:
             json.dump([], f)
     try:
-        with open(f'private_keys_{email}.pem', 'wb') as f:
+        with open(f'claves/private_key_{email}.pem', 'wb') as f:
             f.write(private_key)
         logger.info(f"Clave privada guardada correctamente para el usuario: {email}")
         return True
@@ -200,9 +203,9 @@ def guardar_clave_privada(email, private_key):
         logger.error(f"Error al guardar la clave privada: {e}")
         return False
 
-def sign_data(data):
+def sign_data(data, email):
    #Deserializar la clave privada
-   with open("private_key.pem", "rb") as key_file:
+   with open(f'claves/private_key_{email}.pem', "rb") as key_file:
        private_key = serialization.load_pem_private_key(
            key_file.read(),
            password=b'pollo123'
@@ -237,6 +240,49 @@ def verify_signature(data, signature, public_key):
         return True
     except:
         return False
+
+def crear_csr(email):
+    with open(f'claves/private_key_{email}.pem', "rb") as key_file:
+        key = serialization.load_pem_private_key(
+            key_file.read(),
+            password=b'pollo123'
+        )
+    # Generate a CSR
+    csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
+        # Provide various details about who we are.
+        x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Madrid"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, "Leganes"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "uc3m"),
+        x509.NameAttribute(NameOID.COMMON_NAME, email),
+    ])).sign(key, hashes.SHA256())
+    # Guardar el CSR en un archivo
+    ruta_csr = f"claves/{email}_csr.pem"
+    if not os.path.exists(f'claves/{email}_csr.pem'):
+        with open(f'claves/{email}_csr.pem', 'w') as f:
+            json.dump([], f)
+    with open(ruta_csr, "wb") as f:
+        f.write(csr.public_bytes(serialization.Encoding.PEM))
+    return ruta_csr
+
+def firmar_csr(csr, clave_privada_issuer, nombre_issuer):
+    certificado = x509.CertificateBuilder().subject_name(
+        csr.subject
+    ).issuer_name(
+        nombre_issuer
+    ).public_key(
+        csr.public_key()
+    ).serial_number(
+        x509.random_serial_number()
+    ).not_valid_before(
+        datetime.datetime.utcnow()
+    ).not_valid_after(
+        datetime.datetime.utcnow() + datetime.timedelta(days=365)
+    ).add_extension(
+        x509.BasicConstraints(ca=False, path_length=None), critical=True,
+    ).sign(clave_privada_issuer, hashes.SHA256())
+
+    return certificado
 
 # Ruta para mostrar la página principal (index.html)
 @app.route('/')
