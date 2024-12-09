@@ -1,29 +1,11 @@
 [
     {
-        "username": "a",
-        "email": "a@g.com",
-        "password": "ai3E7SzjVsuNjxqY99+Oeve2QbACTM2ZDzf3Emee6iI=",
-        "salt": "vscOSH37a773HizH7uD+bg==",
-        "balance": "qQ==",
-        "nonce": "LAseT/jInYVrZfpu",
-        "tag": "oSBdGfPRtiOkhXDg5ZuFhw=="
-    },
-    {
         "username": "m",
         "email": "m@g.com",
         "password": "iQTcrspRnjKFc7KuLhVEqx9qMTV8mT8gZWFmFDIrYck=",
         "salt": "Ehi1B9T0+fXl4DawrcfL5w==",
-        "balance": "jfRLvWJ1ags=",
-        "nonce": "MnbmBLEiIcG3FqSm",
-        "tag": "mOP6YM30dl3y3Pl78VGjtQ=="
-    },
-    {
-        "username": "marcos",
-        "email": "marcos@g.com",
-        "password": "Pg+OXw+89lPcyzhX8TKmwgLC6OcEhRSqEguJKgZSQHo=",
-        "salt": "qdUIbAk0OyvsC54H/ORC/w==",
-        "balance": "MLIR",
-        "nonce": "LHAr0D4yMOneF0sq",
-        "tag": "LX1aCBjeHlxsSDZu+ngPNg=="
+        "balance": "ClH/zfO8ag==",
+        "nonce": "/UZvd1yh67z4GlJD",
+        "tag": "QlEqrzAHDLO4hCsxtDYgvw=="
     }
 ]
