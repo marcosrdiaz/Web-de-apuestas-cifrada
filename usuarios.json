@@ -13,8 +13,17 @@
         "email": "m@g.com",
         "password": "iQTcrspRnjKFc7KuLhVEqx9qMTV8mT8gZWFmFDIrYck=",
         "salt": "Ehi1B9T0+fXl4DawrcfL5w==",
-        "balance": "EaOF",
-        "nonce": "Q+E6tzC86tfHuDzf",
-        "tag": "SRVlscXziwEibMk+BoNypw=="
+        "balance": "f3Ly",
+        "nonce": "E+s/UfYC/FN3vIKF",
+        "tag": "hb63wR9V/B4HsZkVy1Ccrw=="
+    },
+    {
+        "username": "marcos",
+        "email": "marcos@g.com",
+        "password": "Pg+OXw+89lPcyzhX8TKmwgLC6OcEhRSqEguJKgZSQHo=",
+        "salt": "qdUIbAk0OyvsC54H/ORC/w==",
+        "balance": "MLIR",
+        "nonce": "LHAr0D4yMOneF0sq",
+        "tag": "LX1aCBjeHlxsSDZu+ngPNg=="
     }
 ]

@@ -336,7 +336,9 @@ def verificar_certificados(email):
         padding.PKCS1v15(),
         certificado_ac.signature_hash_algorithm,
     )
+    logger.info("Certificados verificados correctamente.")
     return True
+
 
 # Ruta para mostrar la página principal (index.html)
 @app.route('/')
@@ -590,6 +592,8 @@ def futbol():
 # Ruta para guardar una apuesta cifrada
 @app.route("/guardar_apuesta", methods=["POST"])
 def guardar_apuesta():
+
+    verificar_certificados(session['usuario']['email'])
     if 'usuario' not in session:
         return jsonify({"error": "Debes iniciar sesión para hacer una apuesta."}), 401
 
@@ -603,8 +607,7 @@ def guardar_apuesta():
         return jsonify({"success": False, "error": "Datos incompletos"}), 400
 
     try:
-        valor_apuesta = float(valor_apuesta_str)
-        logger.info("Hecho")# Convertir el valor de la apuesta a float
+        valor_apuesta = float(valor_apuesta_str) # Convertir el valor de la apuesta a float
     except ValueError:
         return jsonify({"success": False, "error": "Valor de apuesta inválido"}), 400
 
@@ -618,7 +621,6 @@ def guardar_apuesta():
             balance = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
                                     base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
             balance = float(balance)
-            logger.info(f"Balance del usuario: {balance}")
 
             # Verificar si el balance es suficiente para la apuesta
             if balance < valor_apuesta:

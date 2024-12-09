@@ -250,5 +250,23 @@
         "apuesta": "P/Va7AwvT92Mmc9fmq1al9wJFks7wMo5GXd8luMuWwYbzqtlnseo0w55mCQ5KdT+HiO3TZF2k5LfwB+tXL1t7BANm4GcA3NET3vItxY=",
         "nonce": "oed8dgFi5A5Pe3KC",
         "tag": "LuesUAmpphkSIUaB0qiyfA=="
+    },
+    {
+        "email": "marcos@g.com",
+        "apuesta": "ziPK0nI7z8iCsyN2JCkGCy6XcLE2/umYF+cSiOF3A4uqdvP0OHUMOBTWeVVOXNxiexj6YsWnvlV9c9/qXPuYPuVQEN8cVGBp9faGjwSflZE=",
+        "nonce": "oHrfgBIJWErRE7YC",
+        "tag": "1mYVsp7M7IbchhoBzGTx/w=="
+    },
+    {
+        "email": "m@g.com",
+        "apuesta": "AYlxbxu46EbGzWaYojx5W2+bkxEmmgf2URqmzjAvS37xMrD0T5WtC8Y/Z1rqtVzW6+w/dSQdWt+fObpj0rrL1b6i/ZOSEDUr1syb8O5HrBg=",
+        "nonce": "AiC7M38YFd9uGs/l",
+        "tag": "K91rWttEtM+AyHQztVKp0Q=="
+    },
+    {
+        "email": "m@g.com",
+        "apuesta": "eyC0AzrQcJ/V9T16/x/BlzWO27oqjFRNcr0qOojS2aAW+aJFHqVBM8v7wRhva48kfgqTmqgG9dDYo24Mce/OLHJaH5G41okYtSqu4Nnt1kA=",
+        "nonce": "cbzI04JExhHzMrsH",
+        "tag": "rKXKHWHWNkO/3CxQXYaIrg=="
     }
 ]
