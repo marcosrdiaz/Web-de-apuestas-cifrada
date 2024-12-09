@@ -190,17 +190,25 @@ def generar_claves():
 
     return public_key_bytes, private_key_bytes
 
-def guardar_clave_privada(email, private_key):
-    if not os.path.exists(f'claves/private_key_{email}.pem'):
-        with open(f'claves/private_key_{email}.pem', 'w') as f:
-            json.dump([], f)
+def guardar_claves(email, private_key, public_key):
+    # Ensure the 'claves' directory exists
+    if not os.path.exists('claves'):
+        os.makedirs('claves')
+
     try:
+        # Save the private key
         with open(f'claves/private_key_{email}.pem', 'wb') as f:
             f.write(private_key)
         logger.info(f"Clave privada guardada correctamente para el usuario: {email}")
+
+        # Save the public key
+        with open(f'claves/public_key_{email}.pem', 'wb') as f:
+            f.write(public_key)
+        logger.info(f"Clave pública guardada correctamente para el usuario: {email}")
+
         return True
     except (IOError, TypeError) as e:
-        logger.error(f"Error al guardar la clave privada: {e}")
+        logger.error(f"Error al guardar las claves: {e}")
         return False
 
 def sign_data(data, email):
@@ -219,9 +227,31 @@ def sign_data(data, email):
        ),
        hashes.SHA256()
    )
-   return signature
+   guardar_firma(email, signature)
+   return True
 
-def verify_signature(data, signature, public_key):
+
+def guardar_firma(email, signature):
+    # Ensure the 'firmas' directory exists
+    if not os.path.exists('firmas'):
+        os.makedirs('firmas')
+
+    try:
+        # Save the signature
+        with open(f'firmas/firma_{email}.sig', 'wb') as f:
+            f.write(signature)
+        logger.info(f"Firma guardada correctamente para el usuario: {email}")
+        return True
+    except (IOError, TypeError) as e:
+        logger.error(f"Error al guardar la firma: {e}")
+        return False
+
+def verify_signature(data, email, public_key):
+
+    # Leer la firma
+    with open(f'firmas/firma_{email}.sig', "rb") as f:
+        signature = f.read()
+
     # Deserializar la clave pública
     public_key = serialization.load_pem_public_key(
         public_key,
@@ -237,6 +267,7 @@ def verify_signature(data, signature, public_key):
             ),
             hashes.SHA256()
         )
+        logger.info("Firma verificada correctamente.")
         return True
     except:
         return False
@@ -249,40 +280,63 @@ def crear_csr(email):
         )
     # Generate a CSR
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
-        # Provide various details about who we are.
         x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Madrid"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "MADRID"),
         x509.NameAttribute(NameOID.LOCALITY_NAME, "Leganes"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "uc3m"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "UC3M"),
         x509.NameAttribute(NameOID.COMMON_NAME, email),
     ])).sign(key, hashes.SHA256())
     # Guardar el CSR en un archivo
-    ruta_csr = f"claves/{email}_csr.pem"
-    if not os.path.exists(f'claves/{email}_csr.pem'):
-        with open(f'claves/{email}_csr.pem', 'w') as f:
+    ruta_csr = f"AC1/solicitudes/{email}_csr_req.pem"
+    if not os.path.exists(ruta_csr):
+        with open(ruta_csr, 'w') as f:
             json.dump([], f)
     with open(ruta_csr, "wb") as f:
         f.write(csr.public_bytes(serialization.Encoding.PEM))
-    return ruta_csr
+    return True
 
-def firmar_csr(csr, clave_privada_issuer, nombre_issuer):
-    certificado = x509.CertificateBuilder().subject_name(
-        csr.subject
-    ).issuer_name(
-        nombre_issuer
-    ).public_key(
-        csr.public_key()
-    ).serial_number(
-        x509.random_serial_number()
-    ).not_valid_before(
-        datetime.datetime.utcnow()
-    ).not_valid_after(
-        datetime.datetime.utcnow() + datetime.timedelta(days=365)
-    ).add_extension(
-        x509.BasicConstraints(ca=False, path_length=None), critical=True,
-    ).sign(clave_privada_issuer, hashes.SHA256())
+def verificar_certificados(email):
+    #Obtenemos el certificado del usuario
+    try:
+        with open(f'A/{email}_cert.pem', "rb") as f:
+            certificado = f.read()
 
-    return certificado
+        certificado_usuario = x509.load_pem_x509_certificate(certificado)
+    except FileNotFoundError as e:
+        logger.error(f"Error al cargar el certificado del usuario: {e}")
+        return False
+
+    #Obtenemos el certificado de la AC a verificar (AC1)
+    with open(f'A/ac1cert.pem', "rb") as f:
+        certificado = f.read()
+
+    certificado_ac_ver = x509.load_pem_x509_certificate(certificado)
+
+    #Obtenemos el certificado de la AC (AC1)
+    with open(f'AC1/ac1cert.pem', "rb") as f:
+        certificado = f.read()
+
+    certificado_ac = x509.load_pem_x509_certificate(certificado)
+
+    #Obtenemos la clave pública de la AC (AC1)
+    ac_public_key = certificado_ac.public_key()
+
+    #Verificamos el certificado del usuario con la clave pública de la AC
+    ac_public_key.verify(
+        certificado_usuario.signature,
+        certificado_usuario.tbs_certificate_bytes,
+        padding.PKCS1v15(),
+        certificado_usuario.signature_hash_algorithm,
+    )
+
+    #Verificamos el certificado de la AC con la clave pública de la AC
+    ac_public_key.verify(
+        certificado_ac_ver.signature,
+        certificado_ac.tbs_certificate_bytes,
+        padding.PKCS1v15(),
+        certificado_ac.signature_hash_algorithm,
+    )
+    return True
 
 # Ruta para mostrar la página principal (index.html)
 @app.route('/')
@@ -321,6 +375,19 @@ def register():
 
         #Generamos la clave publica y privada del usuario
         public_key_bytes, private_key_bytes = generar_claves()
+        guardar_claves(email, private_key_bytes, public_key_bytes)
+
+        # Crear el mensaje de política de privacidad y confirmación de edad
+        mensaje = "I agree to the Privacy Policy and confirm that I am over 18 years old."
+
+        # Firmar el mensaje con la clave privada del usuario
+        sign_data(mensaje, email)
+
+        # Crear un CSR con la firma
+        crear_csr(email)
+
+        #Verificamos la firma
+        verify_signature(mensaje, email, public_key_bytes)
 
         # Guardamos en base 64 para mayor seguridad
         nuevo_usuario = {
@@ -331,22 +398,12 @@ def register():
             'balance': base64.b64encode(balance_cifrado).decode('utf-8'),
             'nonce': base64.b64encode(nonce).decode('utf-8'),
             'tag': base64.b64encode(tag).decode('utf-8'),
-            'public_key': public_key_bytes.decode('utf-8'),
-        }
-
-        nueva_clave = {
-            'email': email,
-            'private_key': private_key_bytes.decode('utf-8'),
         }
 
         # Guardar el nuevo usuario en el archivo JSON
         if guardar_usuario(nuevo_usuario):
-            # Guardar clave privada en un archivo
-            if guardar_clave_privada(email, private_key_bytes):
-                logger.info(f"Nuevo usuario registrado: {username}, {email}")
-                return redirect(url_for('login'))
-            else:
-                return jsonify({'message': 'Error al guardar la clave privada'}), 500
+            logger.info(f"Nuevo usuario registrado: {username}, {email}")
+            return redirect(url_for('login'))
         else:
             return jsonify({'message': 'El nombre de usuario o correo electrónico ya existen'}), 400
 
@@ -540,11 +597,16 @@ def guardar_apuesta():
 
     partido = data.get("partido")
     apuesta = data.get("apuesta")
-    valor_apuesta = data.get("valor_apuesta")  # Obtener el valor de la apuesta
-    print(partido, apuesta, valor_apuesta)
+    valor_apuesta_str = data.get("valor_apuesta")
 
-    if not partido or not apuesta or not valor_apuesta:
+    if not partido or not apuesta or not valor_apuesta_str:
         return jsonify({"success": False, "error": "Datos incompletos"}), 400
+
+    try:
+        valor_apuesta = float(valor_apuesta_str)
+        logger.info("Hecho")# Convertir el valor de la apuesta a float
+    except ValueError:
+        return jsonify({"success": False, "error": "Valor de apuesta inválido"}), 400
 
     # Leer usuarios desde el archivo JSON
     usuarios = leer_usuarios()
@@ -552,6 +614,16 @@ def guardar_apuesta():
 
     for usuario in usuarios:
         if usuario['email'] == usuario_email:
+            # Descifrar el balance del usuario
+            balance = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
+                                    base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
+            balance = float(balance)
+            logger.info(f"Balance del usuario: {balance}")
+
+            # Verificar si el balance es suficiente para la apuesta
+            if balance < valor_apuesta:
+                return jsonify({"success": False, "error": "Fondos insuficientes. Por favor, añade más balance."}), 400
+
             # Preparar el texto de la apuesta para cifrarlo
             texto_apuesta = f"Partido: {partido} - Apuesta: {apuesta} - Valor: {valor_apuesta}"
 
@@ -583,7 +655,64 @@ def guardar_apuesta():
             with open(RUTA_JSON_FUTBOL, "w") as file:
                 json.dump(apuestas_data, file, indent=4)
 
+            # Modificar el balance del usuario
+            balance -= valor_apuesta
+            balance = str(balance)
+            balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['password']))
+            usuario['balance'] = base64.b64encode(balance_cifrado).decode('utf-8')
+            usuario['tag'] = base64.b64encode(tag).decode('utf-8')
+            usuario['nonce'] = base64.b64encode(nonce).decode('utf-8')
+
+            # Guardar cambios en el archivo JSON
+            with open(RUTA_JSON, 'w') as f:
+                json.dump(usuarios, f, indent=4)
+
+            session['usuario']['balance'] = balance
+
             return jsonify({"success": True, "message": "Apuesta guardada exitosamente"})
+
+    return jsonify({"success": False, "error": "Error al guardar la apuesta"}), 500
+@app.route('/modificar_balance_apuesta', methods=["POST"])
+def modificar_balance_apuesta():
+    if 'usuario' in session:
+        data = request.get_json()
+        partido = data.get("partido")
+        apuesta = data.get("apuesta")
+        valor_apuesta = float(data.get("valor_apuesta"))  # Obtener el valor de la apuesta
+
+        # Leer usuarios desde el archivo JSON
+        usuarios = leer_usuarios()
+        usuario_email = session['usuario']['email']  # Identificar al usuario en sesión
+
+        # Actualizar el balance según la apuesta y el usuario en sesión
+        for usuario in usuarios:
+            if usuario['email'] == usuario_email:
+                balance = descifrar_aes(base64.b64decode(usuario['balance']), base64.b64decode(usuario['nonce']),
+                                        base64.b64decode(usuario['tag']), base64.b64decode(usuario['password']))
+                balance = float(balance)
+
+                # Restar el valor de la apuesta del balance
+                if balance >= valor_apuesta:  # Verificar que haya suficiente saldo
+                    balance -= valor_apuesta
+                    balance = str(balance)
+                    balance_cifrado, nonce, tag = cifrar_aes(balance, base64.b64decode(usuario['password']))
+                    usuario['balance'] = base64.b64encode(balance_cifrado).decode('utf-8')
+                    usuario['tag'] = base64.b64encode(tag).decode('utf-8')
+                    usuario['nonce'] = base64.b64encode(nonce).decode('utf-8')
+                else:
+                    return jsonify({'message': 'Fondos insuficientes'}), 400
+
+                session['usuario']['balance'] = balance
+                break
+
+        # Guardar cambios en el archivo JSON
+        with open(RUTA_JSON, 'w') as f:
+            json.dump(usuarios, f, indent=4)
+
+        logger.info(f"Datos de la sesión que se pasan a la plantilla: {session['usuario']}")
+        return jsonify({"success": True, "message": "Balance actualizado exitosamente"})
+
+    return jsonify({"error": "Debes iniciar sesión para modificar el balance."}), 401
 
 @app.route('/hipica')
 def hipica():

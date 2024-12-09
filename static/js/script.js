@@ -18,44 +18,38 @@ const horses = [
 const raceDistance = canvas.width - 100; // Distancia de la carrera
 
 // Función para iniciar la carrera
+// Function to start the race
 function startRace() {
-    const horseNumber = parseInt(document.getElementById('horseNumber').value);
-    if (isNaN(horseNumber) || horseNumber < 1 || horseNumber > 3) {
-        alert('Por favor, ingresa un número de caballo válido (1-3)');
-        return;
-    }
-
-    // Reiniciar la posición de los caballos
+    // Reset the positions of the horses
     horses.forEach(horse => horse.x = 0);
-    updateHorsePositions(); // Actualizar las posiciones inmediatamente
+    updateHorsePositions(); // Update positions immediately
 
     const raceInterval = setInterval(() => {
         horses.forEach(horse => {
-            // Mover cada caballo una distancia aleatoria
+            // Move each horse a random distance
             horse.x += Math.random() * 10;
         });
 
-        updateHorsePositions(); // Actualizar las posiciones en cada iteración
+        updateHorsePositions(); // Update positions in each iteration
 
-        // Verificar si algún caballo ha llegado a la meta
+        // Check if any horse has reached the finish line
         const winner = horses.findIndex(horse => horse.x >= raceDistance);
         if (winner !== -1) {
             clearInterval(raceInterval);
-            alert(`¡Caballo ${winner + 1} ha ganado!`);
+            alert(`Horse ${winner + 1} has won!`);
         }
     }, 100);
 }
 
-// Función para actualizar las posiciones de los caballos
+// Function to update the positions of the horses
 function updateHorsePositions() {
     horses.forEach(horse => {
-        horse.element.style.left = `${horse.x}px`; // Actualizar la posición horizontal (left) en píxeles
+        horse.element.style.left = `${horse.x}px`; // Update the horizontal position (left) in pixels
     });
 }
 
-// Asignar el evento de click al botón
+// Assign the click event to the button
 document.getElementById('startRace').addEventListener('click', startRace);
-
 
 
 function login(user) {
@@ -90,6 +84,11 @@ document.getElementById('logout-btn').addEventListener('click', function(event) 
 });
 
 function enviarApuesta(partido, apuesta, valorApuesta) {
+    if (!valorApuesta) {
+        alert("Por favor, indica cuánto dinero vas a apostar.");
+        return;
+    }
+
     fetch("/guardar_apuesta", {
         method: "POST",
         headers: {
@@ -102,7 +101,7 @@ function enviarApuesta(partido, apuesta, valorApuesta) {
         if (data.success) {
             mostrarApuestaEnSidebar(partido, apuesta, valorApuesta); // Muestra en la sidebar
         } else {
-            alert("Hubo un problema al guardar la apuesta.");
+            alert(data.error || "Hubo un problema al guardar la apuesta.");
         }
     })
     .catch(error => console.error("Error al enviar la apuesta:", error));

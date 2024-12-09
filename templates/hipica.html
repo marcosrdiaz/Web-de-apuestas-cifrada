@@ -59,11 +59,13 @@
     <div class="contenido">
         <div class="apuestas" id="apuestas">
             <div class="form-container">
+                <label for="betAmount">Cantidad a apostar:</label>
+                <input type="number" id="betAmount" required>
                 <p>Seleccione el caballo al que desea apostar:</p>
-                <button class="bet-option" onclick="enviarApuesta('Carrera Hípica','Caballo 1')">Caballo 1</button>
-                <button class="bet-option" onclick="enviarApuesta('Carrera Hípica','Caballo 2')">Caballo 2</button>
-                <button class="bet-option" onclick="enviarApuesta('Carrera Hípica','Caballo 3')">Caballo 3</button>
-                <button id="startRace" type="submit">Iniciar Carrera</button>
+                <button class="bet-option" onclick="enviarApuesta('Carrera Hípica','Caballo 1', document.getElementById('betAmount').value)">Caballo 1</button>
+                <button class="bet-option" onclick="enviarApuesta('Carrera Hípica','Caballo 2', document.getElementById('betAmount').value)">Caballo 2</button>
+                <button class="bet-option" onclick="enviarApuesta('Carrera Hípica','Caballo 3', document.getElementById('betAmount').value)">Caballo 3</button>
+                <button id="startRace" type="button">Iniciar Carrera</button>
             </div>
 
             <div id="raceTrack" style="position: relative; width: 800px; height: 400px; margin: auto;">

@@ -48,27 +48,33 @@
             <div class="bet-container">
                 <h3>Partido 1: Novak Djokovic - Carlos Alcaraz</h3>
                 <p>¿Quién ganará el partido?</p>
-                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Gana Djokovic')">Gana Djokovic</button>
-                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Empate')">Empate</button>
-                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Gana Alcaraz')">Gana Alcaraz</button>
+                <label for="betAmount1">Cantidad a apostar:</label>
+                <input type="number" id="betAmount1" required>
+                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Gana Djokovic', document.getElementById('betAmount1').value)">Gana Djokovic</button>
+                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Empate', document.getElementById('betAmount1').value)">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Novak Djokovic - Carlos Alcaraz', 'Gana Alcaraz', document.getElementById('betAmount1').value)">Gana Alcaraz</button>
             </div>
 
             <!-- Partido 2 -->
             <div class="bet-container">
                 <h3>Partido 2: Daniil Medvedev - Stefanos Tsitsipas</h3>
                 <p>¿Quién ganará el partido?</p>
-                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Gana Medvedev')">Gana Medvedev</button>
-                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Empate')">Empate</button>
-                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Gana Tsitsipas')">Gana Tsitsipas</button>
+                <label for="betAmount2">Cantidad a apostar:</label>
+                <input type="number" id="betAmount2" required>
+                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Gana Medvedev', document.getElementById('betAmount2').value)">Gana Medvedev</button>
+                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Empate', document.getElementById('betAmount2').value)">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Daniil Medvedev - Stefanos Tsitsipas', 'Gana Tsitsipas', document.getElementById('betAmount2').value)">Gana Tsitsipas</button>
             </div>
 
             <!-- Partido 3 -->
             <div class="bet-container">
                 <h3>Partido 3: Alexander Zverev - Andrey Rublev</h3>
                 <p>¿Quién ganará el partido?</p>
-                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Gana Zverev')">Gana Zverev</button>
-                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Empate')">Empate</button>
-                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Gana Rublev')">Gana Rublev</button>
+                <label for="betAmount3">Cantidad a apostar:</label>
+                <input type="number" id="betAmount3" required>
+                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Gana Zverev', document.getElementById('betAmount3').value)">Gana Zverev</button>
+                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Empate', document.getElementById('betAmount3').value)">Empate</button>
+                <button class="bet-option" onclick="enviarApuesta('Alexander Zverev - Andrey Rublev', 'Gana Rublev', document.getElementById('betAmount3').value)">Gana Rublev</button>
             </div>
         </div>
 
