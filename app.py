@@ -6,7 +6,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography import x509
 from cryptography.x509.oid import NameOID
-import datetime
 import re
 
 from Crypto.Cipher import AES
@@ -34,20 +33,12 @@ if not os.path.exists(RUTA_JSON):
     with open(RUTA_JSON, 'w') as f:
         json.dump([], f)
 
-# Ruta del archivo JSON donde se guardarán las apuestas de hipica
-RUTA_JSON_HIPICA = 'apuestas_hipica.json'
+# Ruta del archivo JSON donde se guardarán todas las apuestas
+RUTA_JSON_APUESTAS = 'apuestas.json'
 
-# Crear o cargar el archivo JSON para las apuestas de hípica
-if not os.path.exists(RUTA_JSON_HIPICA):
-    with open(RUTA_JSON_HIPICA, 'w') as f:
-        json.dump([], f)
-
-# Ruta del archivo JSON donde se guardarán las apuestas de hipica
-RUTA_JSON_FUTBOL = 'apuestas_futbol.json'
-
-# Crear o cargar el archivo JSON para las apuestas de hípica
-if not os.path.exists(RUTA_JSON_FUTBOL):
-    with open(RUTA_JSON_FUTBOL, 'w') as f:
+# Crear o cargar el archivo JSON para las apuestas
+if not os.path.exists(RUTA_JSON_APUESTAS):
+    with open(RUTA_JSON_APUESTAS, 'w') as f:
         json.dump([], f)
 
 
@@ -140,34 +131,33 @@ def descifrar_aes(texto_cifrado, nonce, tag, clave):
         logger.error("Error: el mensaje ha sido alterado o la clave es incorrecta.")
         return None
 
-def guardar_apuesta_hipica(apuesta):
+def guardar_apuesta(apuesta):
     try:
         # Leer apuestas previas
-        with open(RUTA_JSON_HIPICA, 'r') as f:
-            apuestas_hipica = json.load(f)
+        with open(RUTA_JSON_APUESTAS, 'r') as f:
+            apuestas = json.load(f)
 
         # Añadir la nueva apuesta
-        apuestas_hipica.append(apuesta)
+        apuestas.append(apuesta)
 
         # Guardar de vuelta en el archivo JSON
-        with open(RUTA_JSON_HIPICA, 'w') as f:
-            json.dump(apuestas_hipica, f, indent=4)
+        with open(RUTA_JSON_APUESTAS, 'w') as f:
+            json.dump(apuestas, f, indent=4)
 
-        logger.info("Apuesta de hípica guardada correctamente en el archivo JSON.")
+        logger.info("Apuesta guardada correctamente en el archivo JSON.")
         return True
 
     except (FileNotFoundError, json.JSONDecodeError):
-        apuestas_hipica = []
+        apuestas = []
         # Añadir la nueva apuesta
-        apuestas_hipica.append(apuesta)
+        apuestas.append(apuesta)
 
         # Guardar de vuelta en el archivo JSON
-        with open(RUTA_JSON_HIPICA, 'w') as f:
-            json.dump(apuestas_hipica, f, indent=4)
+        with open(RUTA_JSON_APUESTAS, 'w') as f:
+            json.dump(apuestas, f, indent=4)
 
-        logger.info("Apuesta de hípica guardada correctamente en el archivo JSON.")
+        logger.info("Apuesta guardada correctamente en el archivo JSON.")
         return True
-
 
 def generar_claves():
     # Generar un par de claves RSA
@@ -293,6 +283,8 @@ def crear_csr(email):
             json.dump([], f)
     with open(ruta_csr, "wb") as f:
         f.write(csr.public_bytes(serialization.Encoding.PEM))
+
+    logger.info(f"CSR generado correctamente para el usuario: {email}")
     return True
 
 def verificar_certificados(email):
@@ -591,9 +583,10 @@ def futbol():
 
 # Ruta para guardar una apuesta cifrada
 @app.route("/guardar_apuesta", methods=["POST"])
-def guardar_apuesta():
+def guardar_apuesta_cifrada():
 
     verificar_certificados(session['usuario']['email'])
+
     if 'usuario' not in session:
         return jsonify({"error": "Debes iniciar sesión para hacer una apuesta."}), 401
 
@@ -607,7 +600,7 @@ def guardar_apuesta():
         return jsonify({"success": False, "error": "Datos incompletos"}), 400
 
     try:
-        valor_apuesta = float(valor_apuesta_str) # Convertir el valor de la apuesta a float
+        valor_apuesta = float(valor_apuesta_str)  # Convertir el valor de la apuesta a float
     except ValueError:
         return jsonify({"success": False, "error": "Valor de apuesta inválido"}), 400
 
@@ -632,30 +625,14 @@ def guardar_apuesta():
             # Cifrar la apuesta
             apuesta_cifrada, nonce_apuesta, tag_apuesta = cifrar_aes(texto_apuesta, base64.b64decode(usuario['password']))
 
-            # Guardar la apuesta cifrada en la sesión o base de datos
-            if "apuestas" not in session:
-                session["apuestas"] = []
-            session["apuestas"].append(apuesta_cifrada)
-
-            # Intentar leer el archivo JSON y manejar posibles errores
-            try:
-                with open(RUTA_JSON_FUTBOL, "r") as file:
-                    apuestas_data = json.load(file)
-            except (FileNotFoundError, json.JSONDecodeError):
-                apuestas_data = []
-
-            # Agregar la nueva apuesta al archivo
+            # Guardar la apuesta cifrada en el archivo JSON
             nueva_apuesta = {
                 "email": usuario_email,
                 "apuesta": base64.b64encode(apuesta_cifrada).decode('utf-8'),
                 "nonce": base64.b64encode(nonce_apuesta).decode('utf-8'),
                 "tag": base64.b64encode(tag_apuesta).decode('utf-8')
             }
-            apuestas_data.append(nueva_apuesta)
-
-            # Guardar las apuestas actualizadas en el archivo JSON
-            with open(RUTA_JSON_FUTBOL, "w") as file:
-                json.dump(apuestas_data, file, indent=4)
+            guardar_apuesta(nueva_apuesta)
 
             # Modificar el balance del usuario
             balance -= valor_apuesta
@@ -727,14 +704,13 @@ def apostar_hipica():
         horse_number = request.form.get('horseNumber')  # Recoger el valor de horseNumber
         if not horse_number:
             return jsonify({'message': 'Número del caballo no proporcionado'}), 400
-            # Leer usuarios desde el archivo JSON
 
+        # Leer usuarios desde el archivo JSON
         usuarios = leer_usuarios()
         usuario_email = session['usuario']['email']  # Identificar al usuario en sesión
 
         # Actualizar el balance según la acción y el usuario en sesión
         for usuario in usuarios:
-
             if usuario['email'] == usuario_email:
                 try:
                     # Cifrar el número del caballo elegido
@@ -742,6 +718,7 @@ def apostar_hipica():
                 except KeyError as e:
                     # Manejo del error si alguna clave falta
                     return jsonify({'message': f'Error en la clave de encriptación: {str(e)}'}), 500
+
                 # Convertir datos a base64 para almacenarlos en JSON
                 apuesta_cifrada = {
                     'email': session['usuario']['email'],
@@ -751,7 +728,7 @@ def apostar_hipica():
                 }
 
                 # Guardar apuesta en el archivo JSON
-                if guardar_apuesta_hipica(apuesta_cifrada):
+                if guardar_apuesta(apuesta_cifrada):
                     logger.info(f"Apuesta de hípica realizada por el usuario: {session['usuario']['username']}")
                     return ('', 204)
                 else:
